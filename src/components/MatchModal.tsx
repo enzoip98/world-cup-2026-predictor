@@ -11,6 +11,8 @@ import { ScoreInput } from "./ScoreInput";
 import { MatchResult } from "@/types/MatchResult";
 import { ScoreResultSection } from "./ScoreResultSection";
 import { MatchStatus } from "@/utils/matchstatus";
+import { AppUser } from "@/lib/users";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 type Props = {
     match: Match | null;
@@ -21,8 +23,13 @@ type Props = {
     onSavePrediction: (matchId: string, prediction: Prediction) => void;
     prediction?: Prediction;
     resultMatch?: MatchResult;
-    onSaveResult: (matchId: string, result: MatchResult) => void;
+    onSaveResult: (matchId: string, result: {
+        homeScore: number;
+        awayScore: number;
+    }) => void;
     status: MatchStatus;
+    attendees: AppUser[];
+    appUser: AppUser;
 };
 
 type AttendanceOption = {
@@ -38,7 +45,7 @@ const finishedAttendanceOptions: AttendanceOption[] = [
 ];
 
 export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance, onAttendanceChange,
-    onSavePrediction, prediction, onSaveResult, resultMatch, status }: Props) {
+    onSavePrediction, prediction, onSaveResult, resultMatch, status, attendees, appUser }: Props) {
 
     const [isPredicting, setIsPredicting] = useState(false);
     const [isSavingResult, setIsSavingResult] = useState(false);
@@ -118,7 +125,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     onClearAttendance={onClearAttendance}
                 />}
 
-                {isFinished && <div className="mb-3 flex items-center justify-between">
+                {isFinished && <div className="mt-3 flex items-center justify-between">
                     <p className="text-sm font-semibold text-gray-900">Tu asistencia</p>
                     <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
                         {attendanceStatus
@@ -128,10 +135,46 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                 </div>}
 
                 <div className="mt-6 rounded-2xl bg-gray-50 p-4">
-                    <p className="text-sm font-semibold text-gray-900">Asistentes</p>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Todavía no hay asistentes registrados.
+                    <p className="text-sm font-semibold text-gray-900">
+                        {!isFinished ? `Asistentes (${attendees.length})` : `Asistieron (${attendees.length})`}
                     </p>
+                    {(attendees.length === 0 && !isFinished) ? (
+                        <p className="mt-1 text-sm text-gray-500">
+                            Todavía no hay asistentes registrados.
+                        </p>
+                    ) : (attendees.length != 0 &&
+                        <div className="my-3 space-y-2">
+                            {attendees.map((user) => (
+                                <div
+                                    key={user.uid}
+                                    className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                                >
+                                    <Avatar>
+                                        <AvatarImage
+                                            src={user.photoURL ?? undefined}
+                                            referrerPolicy="no-referrer"
+                                        />
+                                        <AvatarFallback>
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            {user.name}
+                                            {user.uid === appUser?.uid && (
+                                                <span className="ml-2 text-xs text-blue-600">(Tú)</span>
+                                            )}
+                                        </p>
+
+                                        <p className="text-xs text-gray-500">
+                                            {user.email}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-6 rounded-2xl bg-gray-50 p-5">
@@ -158,7 +201,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                 <ScoreResultSection
                                     homeTeam={homeTeam}
                                     awayTeam={awayTeam}
-                                    result={{ ...prediction, status: "scheduled" }}
+                                    result={{ matchId: match.id, ...prediction, status: "scheduled" }}
                                 />
                             )}
 
@@ -196,11 +239,11 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                         ) : (!isFinished && <>
                             <div className="mt-4">
                                 {homeTeam && awayTeam && (
-                                <ScoreInput
-                                    homeTeam={homeTeam}
-                                    awayTeam={awayTeam} homeScore={homeScore}
-                                    setHomeScore={setHomeScore} awayScore={awayScore}
-                                    setAwayScore={setAwayScore} />)}
+                                    <ScoreInput
+                                        homeTeam={homeTeam}
+                                        awayTeam={awayTeam} homeScore={homeScore}
+                                        setHomeScore={setHomeScore} awayScore={awayScore}
+                                        setAwayScore={setAwayScore} />)}
 
                                 <div className="mt-4 flex gap-2">
                                     <button
@@ -301,8 +344,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
 
                                         onSaveResult(match.id, {
                                             homeScore: Number(realHomeScore),
-                                            awayScore: Number(realAwayScore),
-                                            status: "finished",
+                                            awayScore: Number(realAwayScore)
                                         });
 
                                         setIsSavingResult(false);

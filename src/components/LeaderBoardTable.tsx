@@ -1,6 +1,7 @@
-import {Table,TableBody,TableCell,TableHead,TableHeader,TableRow} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { LeaderboardRow } from "@/utils/leaderboard";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 type Props = {
     leaderboard: LeaderboardRow[];
@@ -31,9 +32,11 @@ export function LeaderboardTable({ leaderboard }: Props) {
 
                             <TableCell>
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold">
-                                        {row.avatar ?? row.name.charAt(0)}
-                                    </div>
+                                    <Avatar>
+                                        <AvatarImage src={row.avatarUrl ?? row.photoURL ?? undefined}
+                                            referrerPolicy="no-referrer" />
+                                        <AvatarFallback>{row.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
 
                                     <span className="font-medium">
                                         {row.name}

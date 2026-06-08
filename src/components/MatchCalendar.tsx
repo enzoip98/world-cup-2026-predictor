@@ -42,7 +42,9 @@ export function MatchCalendar({ matches, onSelect }: Props) {
                 eventClick={(info) => {
                     const match = matches.find((m) => m.id === info.event.id);
                     if (match) {
-                        onSelect(match);
+                        if(match.homeTeamId && match.awayTeamId){
+                            onSelect(match);
+                        }
                     }
                 }}
             />

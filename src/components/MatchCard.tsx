@@ -8,9 +8,10 @@ type Props = {
     match: Match;
     onSelect: (match: Match) => void;
     status: "scheduled" | "live" | "finished";
+    attendanceCount: number;
 };
 
-export function MatchCard({ match, onSelect, status }: Props) {
+export function MatchCard({ match, onSelect, status, attendanceCount}: Props) {
 
     const homeTeam = match.homeTeamId ? teamsById[match.homeTeamId] : null;
     const awayTeam = match.awayTeamId ? teamsById[match.awayTeamId] : null;
@@ -60,9 +61,8 @@ export function MatchCard({ match, onSelect, status }: Props) {
 
             <div className="mt-4 flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-sm">
                 <span className="text-gray-500">Asisten</span>
-                <span className="font-bold text-gray-900">0</span>
+                <span className="font-bold text-gray-900">{attendanceCount}</span>
             </div>
-            <div><p>{status}</p></div>
         </div>
     );
 

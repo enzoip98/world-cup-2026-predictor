@@ -20,58 +20,43 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { getMatchesFromFirebase, seedMatchesToFirebase } from "@/lib/matches";
 import { JoinPartyView } from "@/components/JoinPartyView";
 import { PredictionsMap, savePredictionToFirebase, subscribeToMyPredictions } from "@/lib/predictions";
+import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
+import { AppUser, subscribeToUsers } from "@/lib/users";
+import { Users } from "lucide-react";
+import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
+import { getPartyById, Party } from "@/lib/parties";
 
 export default function Home() {
 
-  const [activeTab, setActiveTab] =
-    useState<"matches" | "calendar" | "leaderboard">("matches");
+  const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard">("matches");
+
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
 
   const { appUser, loadingAuth, isAdmin } = useAuth();
-  const [isSavingPrediction, setIsSavingPrediction] = useState(false);
-
-  type AttendanceMap = {
-    [matchId: string]: AttendanceStatus;
-  };
-
-  type ResultsMap = {
-    [matchId: string]: MatchResult;
-  };
-
-  const [results, setResults] = useState<ResultsMap>({});
-
-  const handleSaveResult = (matchId: string, result: MatchResult) => {
-    setResults((previous) => ({
-      ...previous,
-      [matchId]: result,
-    }));
-  };
-
-  const [attendance, setAttendance] = useState<AttendanceMap>({
-    "mex-rsa-1106": "going",
-    "usa-par-1206": "not_going",
-  });
-
-  const mockUsers = [
-    {
-      id: "user-1",
-      name: "José",
-      avatar: "J",
-    },
-    {
-      id: "user-2",
-      name: "Carlos",
-      avatar: "C",
-    },
-    {
-      id: "user-3",
-      name: "Luis",
-      avatar: "L",
-    },
-  ];
+  const [partyUsers, setPartyUsers] = useState<AppUser[]>([]);
+  const [party, setParty] = useState<Party | null>(null);
 
   const [predictions, setPredictions] = useState<PredictionsMap>({});
+  const [isSavingPrediction, setIsSavingPrediction] = useState(false);
+
+  const [results, setResults] = useState<ResultsMap>({});
+  const [isSavingResult, setIsSavingResult] = useState(false);
+
+  const [attendance, setAttendance] = useState<AttendanceByMatchMap>({});
+  const [isSavingAttendance, setIsSavingAttendance] = useState(false);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+    const usersSuscribe = subscribeToUsers(appUser?.activePartyId, setPartyUsers);
+    return () => usersSuscribe();
+  }, [appUser?.activePartyId]);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    getPartyById(appUser.activePartyId).then(setParty);
+  }, [appUser?.activePartyId]);
 
   useEffect(() => {
     if (!appUser?.activePartyId) return;
@@ -84,6 +69,22 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [appUser?.activePartyId, appUser?.uid]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToResults(setResults);
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    const unsubscribe = subscribeToPartyAttendance(
+      appUser.activePartyId,
+      setAttendance
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId]);
 
   const handleSavePrediction = async (
     matchId: string,
@@ -105,6 +106,32 @@ export default function Home() {
       console.error("Error guardando predicción:", error);
     } finally {
       setIsSavingPrediction(false);
+    }
+  };
+
+  const handleSaveResult = async (
+    matchId: string,
+    result: {
+      homeScore: number;
+      awayScore: number;
+    }
+  ) => {
+    if (!appUser) return;
+    if (!isAdmin) return;
+
+    try {
+      setIsSavingResult(true);
+
+      await saveResultToFirebase({
+        matchId,
+        homeScore: result.homeScore,
+        awayScore: result.awayScore,
+        updatedBy: appUser.uid,
+      });
+    } catch (error) {
+      console.error("Error guardando resultado:", error);
+    } finally {
+      setIsSavingResult(false);
     }
   };
 
@@ -132,26 +159,48 @@ export default function Home() {
   }, []);
 
 
-  const handleAttendanceChange = (
+  const handleAttendanceChange = async (
     matchId: string,
     status: AttendanceStatus
   ) => {
-    setAttendance((previous) => ({
-      ...previous,
-      [matchId]: status,
-    }));
+    if (!appUser?.activePartyId) return;
+
+    try {
+      setIsSavingAttendance(true);
+
+      await saveAttendanceToFirebase({
+        partyId: appUser.activePartyId,
+        userId: appUser.uid,
+        matchId,
+        status,
+      });
+    } catch (error) {
+      console.error("Error guardando asistencia:", error);
+    } finally {
+      setIsSavingAttendance(false);
+    }
   };
 
-  const clearAttendance = (matchId: string) => {
-    setAttendance((previous) => {
-      const updated = { ...previous };
-      delete updated[matchId];
-      return updated;
-    });
+  const clearAttendance = async (matchId: string) => {
+    if (!appUser?.activePartyId) return;
+
+    try {
+      setIsSavingAttendance(true);
+
+      await clearAttendanceFromFirebase({
+        partyId: appUser.activePartyId,
+        userId: appUser.uid,
+        matchId,
+      });
+    } catch (error) {
+      console.error("Error limpiando asistencia:", error);
+    } finally {
+      setIsSavingAttendance(false);
+    }
   };
 
   const leaderboard = calculateLeaderboard(
-    mockUsers,
+    partyUsers,
     predictions,
     results
   );
@@ -165,6 +214,16 @@ export default function Home() {
     selectedResult,
     now
   );
+
+  const selectedAttendanceStatus = selectedMatch && appUser
+    ? attendance[selectedMatch.id]?.[appUser.uid]
+    : undefined;
+
+  const selectedAttendees = selectedMatch
+    ? partyUsers.filter(
+      user => attendance[selectedMatch.id]?.[user.uid] === "going"
+    )
+    : [];
 
   if (loadingAuth) {
     return <LoadingScreen />;
@@ -180,47 +239,40 @@ export default function Home() {
 
 
   return (
-    <main className="h-screen bg-gray-50 px-5 py-8">
+    <main className="h-screen bg-gray-50 px-5 py-8 relative">
 
-      {isSavingPrediction &&
+      {(isSavingPrediction || isSavingResult || isSavingAttendance) &&
         <LoadingScreen />
       }
 
-      <button
-        onClick={async () => {
-          await seedMatchesToFirebase();
-          alert("Partidos cargados a Firebase");
-        }}
-        className="rounded-lg bg-black px-4 py-2 text-white"
-      >
-        Cargar partidos a Firebase
-      </button>
-      <div>
-        <p className="font-semibold">
-          Hola, {appUser.name}
-        </p>
-        <p className="text-sm text-gray-500">
-          {appUser.email}
-        </p>
+      <div className="absolute right-0 top-0 m-4 flex flex-row gap-3">
+        <div>
+          <p className="font-semibold">
+            Hola, {appUser.name}
+          </p>
+          <p className="text-sm text-gray-500">
+            {appUser.email}
+          </p>
+        </div>
+        <button onClick={logout}
+          className="mx-3 group flex items-center justify-start w-11 h-11 bg-red-600 rounded-full cursor-pointer relative overflow-hidden transition-all duration-200 shadow-lg hover:w-32 hover:rounded-lg active:translate-x-1 active:translate-y-1">
+          <div
+            className="flex items-center justify-center w-full transition-all duration-300 group-hover:justify-start group-hover:px-3"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 512 512" fill="white">
+              <path
+                d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"
+              ></path>
+            </svg>
+          </div>
+          <div
+            className="absolute right-5 transform translate-x-full opacity-0 text-white text-xs font-semibold transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+          >
+            Cerrar sesión
+          </div>
+        </button>
       </div>
-      <button onClick={logout}
-        className="group flex items-center justify-start w-11 h-11 bg-red-600 rounded-full cursor-pointer relative overflow-hidden transition-all duration-200 shadow-lg hover:w-32 hover:rounded-lg active:translate-x-1 active:translate-y-1"
-      >
-        <div
-          className="flex items-center justify-center w-full transition-all duration-300 group-hover:justify-start group-hover:px-3"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 512 512" fill="white">
-            <path
-              d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"
-            ></path>
-          </svg>
-        </div>
-        <div
-          className="absolute right-5 transform translate-x-full opacity-0 text-white text-lg font-semibold transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
-        >
-          Cerrar sesión
-        </div>
-      </button>
+
       <section className="mx-auto max-w-6xl">
         <div className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-widest text-green-600">
@@ -228,12 +280,11 @@ export default function Home() {
           </p>
 
           <h1 className="mt-2 text-3xl font-black text-gray-950 md:text-5xl">
-            Partidos con la mancha
+            {party?.name}
           </h1>
 
           <p className="mt-3 max-w-2xl text-gray-600">
-            Confirmen asistencia, propongan casa y más adelante metemos
-            pronósticos y ranking.
+            Confirmen asistencia, propongan casa y vayan metiendo sus pronósticos ⚽
           </p>
         </div>
 
@@ -273,6 +324,11 @@ export default function Home() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {matches.map((match) => (
               <MatchCard key={match.id} match={match} onSelect={setSelectedMatch}
+                attendanceCount={
+                  Object.values(attendance[match.id] ?? {}).filter(
+                    status => status === "going"
+                  ).length
+                }
                 status={getMatchStatus(match, results[match.id], now)} />
             ))}
           </div>
@@ -288,11 +344,8 @@ export default function Home() {
       <MatchModal
         key={selectedMatch?.id ?? "no-match"}
         match={selectedMatch}
-        attendanceStatus={
-          selectedMatch
-            ? attendance[selectedMatch.id]
-            : undefined
-        }
+        attendanceStatus={selectedAttendanceStatus}
+        attendees={selectedAttendees}
         onSavePrediction={handleSavePrediction}
         onSaveResult={handleSaveResult}
         resultMatch={selectedMatch ? results[selectedMatch.id] : undefined}
@@ -301,6 +354,7 @@ export default function Home() {
         onClearAttendance={clearAttendance}
         onClose={() => setSelectedMatch(null)}
         status={selectedStatus}
+        appUser={appUser}
       />
     </main>
   );

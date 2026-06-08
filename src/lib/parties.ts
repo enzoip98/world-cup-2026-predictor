@@ -1,5 +1,5 @@
 import {
-    collection,
+    collection,getDoc, 
     doc,
     getDocs,
     limit,
@@ -53,4 +53,16 @@ export async function joinPartyByCode(code: string, user: AppUser) {
     });
 
     return partyId;
+}
+
+export async function getPartyById(partyId: string): Promise<Party | null> {
+    const partyRef = doc(db, "parties", partyId);
+    const snapshot = await getDoc(partyRef);
+
+    if (!snapshot.exists()) return null;
+
+    return {
+        id: snapshot.id,
+        ...snapshot.data(),
+    } as Party;
 }

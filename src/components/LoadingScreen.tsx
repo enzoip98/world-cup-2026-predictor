@@ -1,7 +1,6 @@
 export function LoadingScreen() {
     return (
-        <div className="fixed inset-0 z-[900] flex min-h-screen items-center justify-center
-        bg-black/70">
+        <div className="fixed inset-0 z-900 flex min-h-screen items-center justify-center bg-black/70">
             <div className="Strich1">
                 <div className="Strich2">
                     <div className="bubble"></div>
