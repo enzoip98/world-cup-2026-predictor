@@ -14,37 +14,51 @@ import { AuthView } from "@/components/AuthView";
 import { logout } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { getMatchesFromFirebase, seedMatchesToFirebase } from "@/lib/matches";
+import { getMatchesFromFirebase } from "@/lib/matches";
 import { JoinPartyView } from "@/components/JoinPartyView";
 import { PredictionsMap, savePredictionToFirebase, subscribeToMyPredictions, subscribeToPartyPredictions } from "@/lib/predictions";
 import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
 import { AppUser, subscribeToUsers } from "@/lib/users";
 import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
-import { getPartyById, Party, promoteUserToAdmin, removeUserFromAdmin, subscribeToParty } from "@/lib/parties";
+import { Party, promoteUserToAdmin, removeUserFromAdmin, subscribeToParty } from "@/lib/parties";
 import { subscribeToWatchPartyMatches, WatchPartyMatchesMap } from "@/lib/partyMatches";
 import { AdminPanel } from "@/components/AdminPanel";
 import { formatPeruDate, getPeruDateKey } from "@/utils/format";
 
 export default function Home() {
 
-  const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard" | "watching_matches" | "admin">("matches");
+  type ActiveTab =
+    | "matches"
+    | "leaderboard"
+    | "watching_matches"
+    | "admin";
+
+  type TabItem = {
+    id: ActiveTab;
+    label: string;
+  };
+
+  const [activeTab, setActiveTab] = useState<ActiveTab>("matches");
+
   const [matchFilter, setMatchFilter] = useState<"all" | "today" | "scheduled" | "live" | "finished" | "missing_prediction">("all");
-
-  const primaryTabs = [
-    { id: "matches", label: "Partidos" },
-    { id: "watching_matches", label: "En grupo" },
-    { id: "leaderboard", label: "Tabla" },
-  ] as const;
-
-  const secondaryTabs = [
-    { id: "calendar", label: "Calendario" },
-    { id: "admin", label: "Admin" },
-  ] as const;
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
 
   const { appUser, loadingAuth, isAdmin } = useAuth();
+
+  const primaryTabs: TabItem[] = [
+    { id: "matches", label: "Partidos" },
+    { id: "watching_matches", label: "En grupo" },
+  ];
+
+  const secondaryTabs: TabItem[] = isAdmin
+    ? [
+      { id: "leaderboard", label: "Tabla" },
+      { id: "admin", label: "Admin" },
+    ]
+    : [{ id: "leaderboard", label: "Tabla" }];
+
   const [partyUsers, setPartyUsers] = useState<AppUser[]>([]);
   const [party, setParty] = useState<Party | null>(null);
   const [watchPartyMatches, setWatchPartyMatches] = useState<WatchPartyMatchesMap>({});
@@ -439,7 +453,10 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 rounded-3xl bg-white p-1 shadow-sm">
+          <div
+            className={`grid rounded-3xl bg-white p-1 shadow-sm ${secondaryTabs.length === 1 ? "grid-cols-1" : "grid-cols-2"
+              }`}
+          >
             {secondaryTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -480,8 +497,8 @@ export default function Home() {
                   key={filter.key}
                   onClick={() => setMatchFilter(filter.key as typeof matchFilter)}
                   className={`rounded-full px-4 py-2 text-sm font-bold transition ${matchFilter === filter.key
-                      ? "bg-gray-900 text-white"
-                      : "bg-white text-gray-600 shadow-sm"
+                    ? "bg-gray-900 text-white"
+                    : "bg-white text-gray-600 shadow-sm"
                     }`}
                 >
                   {filter.label}
@@ -573,8 +590,6 @@ export default function Home() {
             </div>
           </>
         )}
-
-        {activeTab === "calendar" && <MatchCalendar matches={matches} onSelect={setSelectedMatch} />}
 
         {activeTab === "leaderboard" && (
           <LeaderboardTable leaderboard={leaderboard} />
