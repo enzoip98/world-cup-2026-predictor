@@ -234,7 +234,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                         >
                                             <Avatar>
                                                 <AvatarImage
-                                                    src={user.photoURL ?? undefined}
+                                                    src={user.avatarUrl ?? user.photoURL ?? undefined}
                                                     referrerPolicy="no-referrer"
                                                 />
                                                 <AvatarFallback>

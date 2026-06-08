@@ -72,7 +72,7 @@ export async function getOrCreateUser(firebaseUser: User): Promise<AppUser> {
         updatedAt: serverTimestamp(),
     });
 
-    /*cacheGoogleAvatar(firebaseUser.uid, firebaseUser.photoURL)
+    cacheGoogleAvatar(firebaseUser.uid, firebaseUser.photoURL)
         .then(async (avatarUrl) => {
             if (!avatarUrl) return;
 
@@ -83,7 +83,7 @@ export async function getOrCreateUser(firebaseUser: User): Promise<AppUser> {
         })
         .catch((error) => {
             console.warn("No se pudo copiar avatar de Google:", error);
-        });*/
+        });
 
     return newUser;
 }

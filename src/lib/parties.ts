@@ -42,7 +42,7 @@ export async function joinPartyByCode(code: string, user: AppUser) {
         userId: user.uid,
         name: user.name,
         email: user.email,
-        photoURL: user.photoURL ?? null,
+        photoURL: user.avatarUrl ?? user.photoURL ?? null,
         role: "member",
         joinedAt: serverTimestamp(),
     });
