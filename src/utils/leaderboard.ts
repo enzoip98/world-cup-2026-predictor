@@ -59,7 +59,7 @@ export function calculateLeaderboard(
 
         return {
             userId: user.uid,
-            name: user.name,
+            name: user.name.split(" ")[0],
             avatarUrl: user.avatarUrl ?? undefined,
             points,
             exactScores,

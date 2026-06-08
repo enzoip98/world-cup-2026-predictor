@@ -8,29 +8,31 @@ export function MatchModalHeader({
     awayTeam: Team;
 }) {
     return <>
-        <div>
-            <p className="text-sm my-5 font-semibold uppercase tracking-widest text-green-600">
-                Partido
-            </p>
+        <div className="my-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <div className="flex flex-col items-center gap-3 text-center">
+                <img
+                    src={`https://flagcdn.com/w40/${homeTeam.iso2.toLowerCase()}.png`}
+                    alt={homeTeam.nameEs}
+                    className="h-5 w-7 rounded-sm object-cover shadow-sm"
+                />
+                <h2 className="text-xl font-black text-gray-950">
+                    {homeTeam.nameEs}
+                </h2>
+            </div>
 
-            <div className="flex flex-row gap-4 my-3 justify-center mx-auto text-2xl font-black text-gray-950">
-                <div className="flex flex-col gap-3 items-center justify-center">
-                    <img
-                        src={`https://flagcdn.com/w40/${homeTeam.iso2.toLowerCase()}.png`}
-                        alt={homeTeam.nameEs}
-                        className="h-5 w-7 rounded-sm object-cover shadow-sm"
-                    />
-                    <h2>{homeTeam.nameEs}</h2>
-                </div>
-                vs
-                <div className="flex flex-col gap-3 items-center justify-center">
-                    <img
-                        src={`https://flagcdn.com/w40/${awayTeam.iso2.toLowerCase()}.png`}
-                        alt={awayTeam.nameEs}
-                        className="h-5 w-7 rounded-sm object-cover shadow-sm"
-                    />
-                    <h2>{awayTeam.nameEs}</h2>
-                </div>
+            <span className="text-lg font-bold text-gray-600">
+                VS
+            </span>
+
+            <div className="flex flex-col items-center gap-3 text-center">
+                <img
+                    src={`https://flagcdn.com/w40/${awayTeam.iso2.toLowerCase()}.png`}
+                    alt={awayTeam.nameEs}
+                    className="h-5 w-7 rounded-sm object-cover shadow-sm"
+                />
+                <h2 className="text-xl font-black text-gray-950">
+                    {awayTeam.nameEs}
+                </h2>
             </div>
         </div>
     </>

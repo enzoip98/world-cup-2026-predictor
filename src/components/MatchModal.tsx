@@ -84,11 +84,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                 className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-xl"
                 onClick={(event) => event.stopPropagation()}>
 
-                <div className="my-4 flex flex-col items-center justify-center gap-2">
-
-                    <p className="text-xs text-red-500">
-                        Modal status: {status}
-                    </p>
+                <div className="my-1 flex flex-col items-center justify-center gap-2">
 
                     {homeTeam && awayTeam && (
                         <MatchModalHeader homeTeam={homeTeam} awayTeam={awayTeam} />
@@ -96,7 +92,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
 
                     <button
                         onClick={onClose}
-                        className="absolute right-4 top-4 rounded-full bg-gray-100 px-3 py-1 text-lg font-bold text-gray-600 hover:bg-gray-200">
+                        className="absolute right-4 top-4 rounded-full bg-gray-200 px-3 py-1 text-md font-bold text-gray-600 hover:bg-gray-200">
                         ×
                     </button>
                 </div>
@@ -194,7 +190,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     </div>
 
                     {prediction ? (<>
-                        <div className="mt-4 rounded-2xl bg-white p-4 text-center shadow-sm">
+                        <div className="my-2 rounded-2xl bg-white p-4 text-center shadow-sm">
                             <p className="text-sm text-gray-500">Tu pronóstico</p>
 
                             {homeTeam && awayTeam && (
@@ -205,7 +201,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                 />
                             )}
 
-                            {scoreResult && (<><div className="my-3 rounded-2xl p-2">
+                            {scoreResult && (<><div className="my-3 rounded-2xl">
                                 <div className="flex items-center justify-center gap-3">
                                     <p className="text-sm font-bold text-gray-950">Obtuviste</p>
                                     <div>
