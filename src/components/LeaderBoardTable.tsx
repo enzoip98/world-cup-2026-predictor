@@ -9,7 +9,7 @@ type Props = {
 
 export function LeaderboardTable({ leaderboard }: Props) {
     return (
-        <div className="rounded-xl border bg-white">
+        <div className="rounded-xl border bg-white my-4">
             <Table>
                 <TableHeader>
                     <TableRow>

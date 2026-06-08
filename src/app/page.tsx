@@ -28,6 +28,17 @@ export default function Home() {
 
   const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard" | "watching_matches" | "admin">("matches");
 
+  const primaryTabs = [
+    { id: "matches", label: "Partidos" },
+    { id: "watching_matches", label: "En grupo" },
+    { id: "leaderboard", label: "Tabla" },
+  ] as const;
+
+  const secondaryTabs = [
+    { id: "calendar", label: "Calendario" },
+    { id: "admin", label: "Admin" },
+  ] as const;
+
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
 
@@ -314,7 +325,7 @@ export default function Home() {
 
 
   return (
-    <main className="h-screen bg-gray-50 px-5 py-8 relative">
+    <main className="min-h-screen bg-gray-50 px-5 py-8 relative">
 
       {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty || isSavingAdmin) &&
         <LoadingScreen />
@@ -358,59 +369,40 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="mb-6 flex rounded-2xl bg-white p-1 shadow-sm w-fit">
-          <button
-            onClick={() => setActiveTab("matches")}
-            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "matches"
-              ? "bg-gray-900 text-white"
-              : "text-gray-600 hover:bg-gray-100"
-              }`}
-          >
-            Partidos
-          </button>
-          <button
-            onClick={() => setActiveTab("watching_matches")}
-            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "watching_matches"
-              ? "bg-gray-900 text-white"
-              : "text-gray-600 hover:bg-gray-100"
-              }`}
-          >
-            En grupo
-          </button>
-          <button
-            onClick={() => setActiveTab("calendar")}
-            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "calendar"
-              ? "bg-gray-900 text-white"
-              : "text-gray-600 hover:bg-gray-100"
-              }`}
-          >
-            Calendario
-          </button>
+        <div className="space-y-3">
+          <div className="grid grid-cols-3 rounded-3xl bg-white p-1 shadow-sm">
+            {primaryTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-          <button
-            onClick={() => setActiveTab("leaderboard")}
-            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "leaderboard"
-              ? "bg-gray-900 text-white"
-              : "text-gray-600 hover:bg-gray-100"
-              }`}
-          >
-            Tabla
-          </button>
-          {isAdmin && (
-            <button
-              onClick={() => setActiveTab("admin")}
-              className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "admin"
-                ? "bg-gray-900 text-white"
-                : "text-gray-600 hover:bg-gray-100"
-                }`}
-            >
-              Admin
-            </button>
-          )}
+          <div className="grid grid-cols-2 rounded-3xl bg-white p-1 shadow-sm">
+            {secondaryTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {activeTab === "matches" && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 my-4">
             {matches.map((match) => {
 
               const watchParty = watchPartyMatches[match.id];

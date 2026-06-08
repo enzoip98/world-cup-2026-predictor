@@ -33,7 +33,7 @@ export function MatchCalendar({ matches, onSelect }: Props) {
     });
 
     return (
-        <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <div className="rounded-2xl bg-white p-4 shadow-sm my-4">
             <FullCalendar
                 plugins={[dayGridPlugin, interactionPlugin]}
                 initialView="dayGridMonth"

@@ -52,7 +52,7 @@ export function AdminPanel({
     };
 
     return (
-        <section className="space-y-5">
+        <section className="space-y-5 my-4">
             <div className="rounded-3xl bg-white p-5 shadow-sm">
                 <p className="text-sm font-bold uppercase tracking-widest text-green-600">
                     Administración
