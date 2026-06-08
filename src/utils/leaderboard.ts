@@ -32,7 +32,6 @@ export function calculateLeaderboard(
 ): LeaderboardRow[] {
     const leaderboard = users.map(user => {
         const userPredictions = predictions[user.uid] ?? {};
-
         let points = 0;
         let exactScores = 0;
         let correctResults = 0;

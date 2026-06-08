@@ -157,15 +157,11 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
 
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">
-                                                {user.name}
+                                                {user.name.trim().split(/\s+/).slice(0, 2).join(" ")}
                                                 {user.uid === appUser?.uid && (
                                                     <span className="ml-2 text-xs text-blue-600">(Tú)</span>
                                                 )}
-                                            </p>
-
-                                            <p className="text-xs text-gray-500">
-                                                {user.email}
-                                            </p>
+                                            </p>                                            
                                         </div>
                                     </div>
                                 ))}

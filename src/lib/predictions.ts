@@ -2,7 +2,7 @@ import {
     collection,
     onSnapshot,
     query,
-    where,doc,setDoc,serverTimestamp
+    where, doc, setDoc, serverTimestamp
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Prediction } from "@/types/Prediction";
@@ -39,6 +39,32 @@ export function subscribeToMyPredictions(
             const data = docSnap.data() as FirestorePrediction;
 
             predictionsMap[userId][data.matchId] = {
+                homeScore: data.homeScore,
+                awayScore: data.awayScore,
+            };
+        });
+
+        callback(predictionsMap);
+    });
+}
+
+export function subscribeToPartyPredictions(
+    partyId: string,
+    callback: (predictions: PredictionsMap) => void
+) {
+    const predictionsRef = collection(db, "parties", partyId, "predictions");
+
+    return onSnapshot(predictionsRef, (snapshot) => {
+        const predictionsMap: PredictionsMap = {};
+
+        snapshot.docs.forEach((docSnap) => {
+            const data = docSnap.data() as FirestorePrediction;
+
+            if (!predictionsMap[data.userId]) {
+                predictionsMap[data.userId] = {};
+            }
+
+            predictionsMap[data.userId][data.matchId] = {
                 homeScore: data.homeScore,
                 awayScore: data.awayScore,
             };

@@ -7,22 +7,18 @@ import { MatchModal } from "@/components/MatchModal";
 import { Match } from "@/types/Match";
 import { AttendanceStatus } from "@/types/AttendanceStatus";
 import { Prediction } from "@/types/Prediction";
-import { MatchResult } from "@/types/MatchResult";
 import { calculateLeaderboard } from "@/utils/leaderboard";
 import { LeaderboardTable } from "@/components/LeaderBoardTable";
 import { getMatchStatus } from "@/utils/matchstatus";
-import { onAuthStateChanged, User, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { AuthView } from "@/components/AuthView";
 import { logout } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { getMatchesFromFirebase, seedMatchesToFirebase } from "@/lib/matches";
 import { JoinPartyView } from "@/components/JoinPartyView";
-import { PredictionsMap, savePredictionToFirebase, subscribeToMyPredictions } from "@/lib/predictions";
+import { PredictionsMap, savePredictionToFirebase, subscribeToMyPredictions, subscribeToPartyPredictions } from "@/lib/predictions";
 import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
 import { AppUser, subscribeToUsers } from "@/lib/users";
-import { Users } from "lucide-react";
 import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
 import { getPartyById, Party } from "@/lib/parties";
 
@@ -38,6 +34,7 @@ export default function Home() {
   const [party, setParty] = useState<Party | null>(null);
 
   const [predictions, setPredictions] = useState<PredictionsMap>({});
+  const [partyPredictions, setPartyPredictions] = useState<PredictionsMap>({});
   const [isSavingPrediction, setIsSavingPrediction] = useState(false);
 
   const [results, setResults] = useState<ResultsMap>({});
@@ -69,6 +66,17 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [appUser?.activePartyId, appUser?.uid]);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    const unsubscribe = subscribeToPartyPredictions(
+      appUser.activePartyId,
+      setPartyPredictions
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId]);
 
   useEffect(() => {
     const unsubscribe = subscribeToResults(setResults);
@@ -140,7 +148,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(Date.now());
-    }, 10000);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
@@ -201,7 +209,7 @@ export default function Home() {
 
   const leaderboard = calculateLeaderboard(
     partyUsers,
-    predictions,
+    partyPredictions,
     results
   );
 
