@@ -2,7 +2,7 @@ import {
     collection,
     doc,
     onSnapshot,
-    serverTimestamp,
+    serverTimestamp, updateDoc,
     setDoc,
     deleteDoc,
 } from "firebase/firestore";
@@ -15,6 +15,14 @@ export type WatchPartyMatch = {
     hostName: string;
     createdAt?: unknown;
     updatedAt?: unknown;
+};
+
+type UpdateWatchPartyParams = {
+    partyId: string;
+    matchId: string;
+    hostUserId: string;
+    hostName: string;
+    houseName: string;
 };
 
 export type WatchPartyMatchesMap = Record<string, WatchPartyMatch>;
@@ -78,4 +86,27 @@ export async function removeMatchFromWatchParty(
 ) {
     const ref = doc(db, "parties", partyId, "watchPartyMatches", matchId);
     await deleteDoc(ref);
+}
+
+export async function updateWatchPartyHost({
+    partyId,
+    matchId,
+    hostUserId,
+    hostName,
+    houseName,
+}: UpdateWatchPartyParams) {
+    const ref = doc(
+        db,
+        "parties",
+        partyId,
+        "watchPartyMatches",
+        matchId
+    );
+
+    await updateDoc(ref, {
+        hostUserId,
+        hostName,
+        houseName,
+        updatedAt: serverTimestamp(),
+    });
 }

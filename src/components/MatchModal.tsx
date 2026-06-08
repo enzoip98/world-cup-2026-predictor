@@ -13,7 +13,7 @@ import { ScoreResultSection } from "./ScoreResultSection";
 import { MatchStatus } from "@/utils/matchstatus";
 import { AppUser } from "@/lib/users";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { promoteMatchToWatchParty, removeMatchFromWatchParty, WatchPartyMatch } from "@/lib/partyMatches";
+import { promoteMatchToWatchParty, removeMatchFromWatchParty, updateWatchPartyHost, WatchPartyMatch } from "@/lib/partyMatches";
 import { deleteAttendanceByMatch } from "@/lib/attendance";
 
 type Props = {
@@ -61,8 +61,9 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const [realAwayScore, setRealAwayScore] = useState(resultMatch ? String(resultMatch.awayScore) : "");
     const [awayScore, setAwayScore] = useState("");
     const [isPromotingWatchParty, setIsPromotingWatchParty] = useState(false);
-    const [selectedHostUserId, setSelectedHostUserId] = useState("");
+    const [selectedHostUserId, setSelectedHostUserId] = useState(watchParty?.hostUserId ?? "");
     const [isSavingWatchParty, setIsSavingWatchParty] = useState(false);
+    const [isEditingWatchParty, setIsEditingWatchParty] = useState(false);
 
     if (!match) return null;
 
@@ -95,6 +96,30 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const selectedHouseName = selectedHost
         ? `Casa de ${selectedHost.name.split(" ")[0]}`
         : "";
+
+    const handleUpdateWatchParty = async () => {
+        if (!match) return;
+        if (!activePartyId) return;
+        if (!selectedHost) return;
+
+        try {
+            onSavingWatchPartyChange?.(true);
+
+            await updateWatchPartyHost({
+                partyId: activePartyId,
+                matchId: match.id,
+                hostUserId: selectedHost.uid,
+                hostName: selectedHost.name,
+                houseName: selectedHouseName,
+            });
+
+            setIsEditingWatchParty(false);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            onSavingWatchPartyChange?.(false);
+        }
+    };
 
     const handlePromoteToWatchParty = async () => {
         if (!match) return;
@@ -160,44 +185,115 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                 </div>
 
                 <div>
-                    <div className="space-y-3 text-sm text-gray-700">
-                        <p>
-                            <span className="font-semibold">Fecha:</span>{" "}
-                            {formatDate(match.date)}
+                    <div className="mt-6 rounded-3xl bg-gray-50 p-5 space-y-3">
+                        <p className="flex items-center gap-3 text-base text-gray-700">
+                            <span>📅</span>
+                            <span><strong>Fecha:</strong> {formatDate(match.date)}</span>
                         </p>
 
-                        <p>
-                            <span className="font-semibold">Hora:</span>{" "}
-                            {formatTime(match.time)}
+                        <p className="flex items-center gap-3 text-base text-gray-700">
+                            <span>🕗</span>
+                            <span><strong>Hora:</strong> {formatTime(match.time)}</span>
                         </p>
 
-                        {isWatchParty && <>
-                            <p>
-                                <span className="font-semibold">Casa de:</span>{" "}
-                                {watchParty?.hostName}
+                        {isWatchParty && (
+                            <p className="flex items-center gap-3 text-base text-gray-700">
+                                <span>🏠</span>
+                                <span><strong>Se verá en:</strong> {`Casa de ${watchParty?.hostName.split(" ")[0]}`}</span>
                             </p>
-                        </>}
+                        )}
                     </div>
 
                     {!isFinished && isAdmin && isWatchParty && (
-                        <section className="my-2 rounded-3xl bg-red-50 px-6 py-2">
-                            <button
-                                onClick={() => {
-                                    const confirmed = window.confirm(
-                                        "¿Seguro que deseas quitar este watch party?"
-                                    );
-                                    if (!confirmed) return;
-                                    handleRemoveWatchParty();
-                                }}
-                                className="mt-5 w-full rounded-2xl bg-red-600 py-4 text-base font-black text-white"
-                            >
-                                No se verá en grupo
-                            </button>
+                        <details className="mt-4 rounded-3xl bg-gray-50 p-5">
+                            <summary className="cursor-pointer font-black text-gray-900">
+                                Opciones de administrador
+                            </summary>
 
-                            <p className="my-2 text-xs text-center font-medium text-gray-600">
-                                Este partido dejará de aparecer en Veremos juntos y se ocultará la asistencia.
-                            </p>
-                        </section>
+                            <div className="mt-4 space-y-4">
+                                {!isEditingWatchParty && (
+                                    <section className="my-2 rounded-3xl bg-blue-50 px-6 py-2">
+
+                                        <button
+                                            onClick={() => setIsEditingWatchParty(true)}
+                                            className="mt-5 w-full rounded-2xl bg-blue-600 py-4 text-base font-black text-white"
+                                        >
+                                            Cambiar casa
+                                        </button>
+
+                                        <p className="my-2 text-xs text-center font-medium text-gray-600">
+                                            Actualmente se verá en {watchParty?.houseName}
+                                        </p>
+
+                                    </section>
+                                )}
+                                {isEditingWatchParty && (
+                                    <section className="my-2 rounded-3xl bg-blue-50 p-6">
+
+                                        <p className="text-lg font-black text-gray-950">
+                                            Cambiar casa
+                                        </p>
+
+                                        <select
+                                            value={selectedHostUserId}
+                                            onChange={(e) => setSelectedHostUserId(e.target.value)}
+                                            className="mt-4 w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 font-bold"
+                                        >
+                                            {members.map(member => (
+                                                <option
+                                                    key={member.uid}
+                                                    value={member.uid}
+                                                >
+                                                    Casa de {member.name.split(" ")[0]}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <div className="mt-4 flex gap-3">
+
+                                            <button
+                                                onClick={() => {
+                                                    setIsEditingWatchParty(false);
+                                                    setSelectedHostUserId(
+                                                        watchParty?.hostUserId ?? ""
+                                                    );
+                                                }}
+                                                className="flex-1 rounded-2xl bg-white py-4 font-black"
+                                            >
+                                                Cancelar
+                                            </button>
+
+                                            <button
+                                                onClick={handleUpdateWatchParty}
+                                                className="flex-1 rounded-2xl bg-blue-600 py-4 font-black text-white"
+                                            >
+                                                Guardar
+                                            </button>
+
+                                        </div>
+
+                                    </section>
+                                )}
+                                <section className="my-2 rounded-3xl bg-red-50 px-6 py-2">
+                                    <button
+                                        onClick={() => {
+                                            const confirmed = window.confirm(
+                                                "¿Seguro que deseas quitar este watch party?"
+                                            );
+                                            if (!confirmed) return;
+                                            handleRemoveWatchParty();
+                                        }}
+                                        className="mt-5 w-full rounded-2xl bg-red-600 py-4 text-base font-black text-white"
+                                    >
+                                        No se verá en grupo
+                                    </button>
+
+                                    <p className="my-2 text-xs text-center font-medium text-gray-600">
+                                        Este partido dejará de aparecer en Veremos juntos y se ocultará la asistencia.
+                                    </p>
+                                </section>
+                            </div>
+                        </details>
                     )}
 
                     {isWatchParty && (<>
