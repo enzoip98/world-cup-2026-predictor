@@ -7,7 +7,7 @@ import {
     serverTimestamp,
     setDoc,
     updateDoc,
-    where, arrayUnion, arrayRemove, onSnapshot
+    where, arrayUnion, arrayRemove, onSnapshot, writeBatch
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AppUser } from "@/lib/users";
@@ -21,15 +21,41 @@ export type Party = {
 };
 
 export async function promoteUserToAdmin(partyId: string, userId: string) {
-    await updateDoc(doc(db, "parties", partyId), {
+    const batch = writeBatch(db);
+
+    const partyRef = doc(db, "parties", partyId);
+    const userRef = doc(db, "users", userId);
+
+    batch.update(partyRef, {
         adminUserIds: arrayUnion(userId),
+        updatedAt: serverTimestamp(),
     });
+
+    batch.update(userRef, {
+        role: "admin",
+        updatedAt: serverTimestamp(),
+    });
+
+    await batch.commit();
 }
 
 export async function removeUserFromAdmin(partyId: string, userId: string) {
-    await updateDoc(doc(db, "parties", partyId), {
+    const batch = writeBatch(db);
+
+    const partyRef = doc(db, "parties", partyId);
+    const userRef = doc(db, "users", userId);
+
+    batch.update(partyRef, {
         adminUserIds: arrayRemove(userId),
+        updatedAt: serverTimestamp(),
     });
+
+    batch.update(userRef, {
+        role: "player",
+        updatedAt: serverTimestamp(),
+    });
+
+    await batch.commit();
 }
 
 export async function joinPartyByCode(code: string, user: AppUser) {
