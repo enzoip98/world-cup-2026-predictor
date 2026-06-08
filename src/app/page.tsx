@@ -23,10 +23,12 @@ import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFire
 import { getPartyById, Party, promoteUserToAdmin, removeUserFromAdmin, subscribeToParty } from "@/lib/parties";
 import { subscribeToWatchPartyMatches, WatchPartyMatchesMap } from "@/lib/partyMatches";
 import { AdminPanel } from "@/components/AdminPanel";
+import { formatPeruDate, getPeruDateKey } from "@/utils/format";
 
 export default function Home() {
 
   const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard" | "watching_matches" | "admin">("matches");
+  const [matchFilter, setMatchFilter] = useState<"all" | "today" | "scheduled" | "live" | "finished" | "missing_prediction">("all");
 
   const primaryTabs = [
     { id: "matches", label: "Partidos" },
@@ -319,6 +321,58 @@ export default function Home() {
     return <AuthView />;
   }
 
+  const filteredMatches = matches.filter((match) => {
+    const result = results[match.id];
+    const status = getMatchStatus(match, result, now);
+    const prediction = predictions[appUser.uid]?.[match.id];
+
+    if (matchFilter === "today") {
+      const today = new Date();
+      const matchDate = new Date(match.kickoff);
+      return (
+        matchDate.getFullYear() === today.getFullYear() &&
+        matchDate.getMonth() === today.getMonth() &&
+        matchDate.getDate() === today.getDate()
+      );
+    }
+
+    if (matchFilter === "scheduled") {
+      return status === "scheduled";
+    }
+
+    if (matchFilter === "live") {
+      return status === "live";
+    }
+
+    if (matchFilter === "finished") {
+      return status === "finished";
+    }
+
+    if (matchFilter === "missing_prediction") {
+      return status === "scheduled" && !prediction;
+    }
+
+    return true;
+  });
+
+  const matchesByDate = filteredMatches.reduce<
+    Record<string, Match[]>
+  >((acc, match) => {
+    const dateKey = getPeruDateKey(match.kickoff);
+
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+
+    acc[dateKey].push(match);
+
+    return acc;
+  }, {});
+
+  const groupedMatches = Object.entries(matchesByDate).sort(
+    ([a], [b]) => a.localeCompare(b)
+  );
+
   if (!appUser.activePartyId) {
     return <JoinPartyView appUser={appUser} />;
   }
@@ -376,8 +430,8 @@ export default function Home() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500"
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-500"
                   }`}
               >
                 {tab.label}
@@ -391,8 +445,8 @@ export default function Home() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500"
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-500"
                   }`}
               >
                 {tab.label}
@@ -402,23 +456,81 @@ export default function Home() {
         </div>
 
         {activeTab === "matches" && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 my-4">
-            {matches.map((match) => {
+          <section className="my-4 space-y-6">
+            <div>
+              <h2 className="text-xl font-black text-gray-950">
+                Todos los partidos
+              </h2>
 
-              const watchParty = watchPartyMatches[match.id];
-              const isWatchParty = !!watchParty;
+              <p className="mt-1 text-sm text-gray-600">
+                Revisa el calendario completo y mete tus pronósticos.
+              </p>
+            </div>
 
-              return <MatchCard key={match.id} match={match} onSelect={setSelectedMatch}
-                attendanceCount={
-                  Object.values(attendance[match.id] ?? {}).filter(
-                    status => status === "going"
-                  ).length
-                }
-                status={getMatchStatus(match, results[match.id], now)}
-                isWatchParty={isWatchParty}
-                watchParty={watchParty} />
-            })}
-          </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+              {[
+                { key: "all", label: "Todos" },
+                { key: "today", label: "Hoy" },
+                { key: "scheduled", label: "Próximos" },
+                { key: "live", label: "En vivo" },
+                { key: "finished", label: "Terminados" },
+                { key: "missing_prediction", label: "Por pronosticar" },
+              ].map((filter) => (
+                <button
+                  key={filter.key}
+                  onClick={() => setMatchFilter(filter.key as typeof matchFilter)}
+                  className={`rounded-full px-4 py-2 text-sm font-bold transition ${matchFilter === filter.key
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-600 shadow-sm"
+                    }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            {Object.entries(matchesByDate).length === 0 ? (
+              <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
+                <p className="font-bold text-gray-900">
+                  No hay partidos para este filtro.
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Prueba seleccionando otra opción.
+                </p>
+              </div>
+            ) : (
+              groupedMatches.map(([date, dateMatches]) => (
+                <div key={date} className="space-y-3">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-gray-500">
+                    {formatPeruDate(dateMatches[0].kickoff)}
+                  </h3>
+
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {dateMatches.map((match) => {
+                      const watchParty = watchPartyMatches[match.id];
+                      const isWatchParty = !!watchParty;
+
+                      return (
+                        <MatchCard
+                          key={match.id}
+                          match={match}
+                          onSelect={setSelectedMatch}
+                          attendanceCount={
+                            Object.values(attendance[match.id] ?? {}).filter(
+                              (status) => status === "going"
+                            ).length
+                          }
+                          status={getMatchStatus(match, results[match.id], now)}
+                          isWatchParty={isWatchParty}
+                          watchParty={watchParty}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
+          </section>
         )}
 
         {activeTab === "watching_matches" && (
