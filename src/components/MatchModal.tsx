@@ -13,6 +13,8 @@ import { ScoreResultSection } from "./ScoreResultSection";
 import { MatchStatus } from "@/utils/matchstatus";
 import { AppUser } from "@/lib/users";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { promoteMatchToWatchParty, removeMatchFromWatchParty, WatchPartyMatch } from "@/lib/partyMatches";
+import { deleteAttendanceByMatch } from "@/lib/attendance";
 
 type Props = {
     match: Match | null;
@@ -30,6 +32,10 @@ type Props = {
     status: MatchStatus;
     attendees: AppUser[];
     appUser: AppUser;
+    isWatchParty: boolean;
+    watchParty: WatchPartyMatch | undefined;
+    members: AppUser[];
+    onSavingWatchPartyChange?: (isSaving: boolean) => void;
 };
 
 type AttendanceOption = {
@@ -45,7 +51,8 @@ const finishedAttendanceOptions: AttendanceOption[] = [
 ];
 
 export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance, onAttendanceChange,
-    onSavePrediction, prediction, onSaveResult, resultMatch, status, attendees, appUser }: Props) {
+    onSavePrediction, prediction, onSaveResult, resultMatch, status, attendees,
+    appUser, isWatchParty, watchParty, members, onSavingWatchPartyChange }: Props) {
 
     const [isPredicting, setIsPredicting] = useState(false);
     const [isSavingResult, setIsSavingResult] = useState(false);
@@ -53,6 +60,9 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const [realHomeScore, setRealHomeScore] = useState(resultMatch ? String(resultMatch.homeScore) : "");
     const [realAwayScore, setRealAwayScore] = useState(resultMatch ? String(resultMatch.awayScore) : "");
     const [awayScore, setAwayScore] = useState("");
+    const [isPromotingWatchParty, setIsPromotingWatchParty] = useState(false);
+    const [selectedHostUserId, setSelectedHostUserId] = useState("");
+    const [isSavingWatchParty, setIsSavingWatchParty] = useState(false);
 
     if (!match) return null;
 
@@ -75,6 +85,59 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
         realAwayScore !== "" &&
         Number(realHomeScore) >= 0 &&
         Number(realAwayScore) >= 0;
+
+    const isAdmin = appUser.role === "admin";
+    const activePartyId = appUser.activePartyId;
+    const selectedHost = members.find(
+        (member) => member.uid === selectedHostUserId
+    );
+
+    const selectedHouseName = selectedHost
+        ? `Casa de ${selectedHost.name.split(" ")[0]}`
+        : "";
+
+    const handlePromoteToWatchParty = async () => {
+        if (!match) return;
+        if (!activePartyId) return;
+        if (!selectedHost) return;
+
+        try {
+            setIsSavingWatchParty(true);
+            onSavingWatchPartyChange?.(true);
+
+            await promoteMatchToWatchParty({
+                partyId: activePartyId,
+                matchId: match.id,
+                houseName: selectedHouseName,
+                hostUserId: selectedHost.uid,
+                hostName: selectedHost.name,
+            });
+
+            setIsPromotingWatchParty(false);
+            setSelectedHostUserId("");
+        } catch (error) {
+            console.error("Error promoviendo partido:", error);
+        } finally {
+            setIsSavingWatchParty(false);
+            onSavingWatchPartyChange?.(false);
+        }
+    };
+
+    const handleRemoveWatchParty = async () => {
+        if (!match) return;
+        if (!activePartyId) return;
+
+        try {
+            onSavingWatchPartyChange?.(true);
+
+            await deleteAttendanceByMatch(activePartyId, match.id);
+            await removeMatchFromWatchParty(activePartyId, match.id);
+        } catch (error) {
+            console.error("Error quitando watch party:", error);
+        } finally {
+            onSavingWatchPartyChange?.(false);
+        }
+    };
 
     return (
         <div
@@ -108,66 +171,168 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                             {formatTime(match.time)}
                         </p>
 
-                        <p>
-                            <span className="font-semibold">Casa:</span>{" "}
-                            {match.host ?? "Por definir"}
-                        </p>
-                    </div>
-
-                    {!isFinished && <EditableAttendanceSelector
-                        matchId={match.id}
-                        attendanceStatus={attendanceStatus}
-                        onAttendanceChange={onAttendanceChange}
-                        onClearAttendance={onClearAttendance}
-                    />}
-
-                    {isFinished && <div className="mt-3 flex items-center justify-between">
-                        <p className="text-sm font-semibold text-gray-900">Tu asistencia</p>
-                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-                            {attendanceStatus
-                                ? finishedAttendanceOptions.find((option) => option.value === attendanceStatus)?.label
-                                : "Sin confirmar"}
-                        </span>
-                    </div>}
-
-                    <div className="mt-6 rounded-2xl bg-gray-50 p-4">
-                        <p className="text-sm font-semibold text-gray-900">
-                            {!isFinished ? `Asistentes (${attendees.length})` : `Asistieron (${attendees.length})`}
-                        </p>
-                        {(attendees.length === 0 && !isFinished) ? (
-                            <p className="mt-1 text-sm text-gray-500">
-                                Todavía no hay asistentes registrados.
+                        {isWatchParty && <>
+                            <p>
+                                <span className="font-semibold">Casa de:</span>{" "}
+                                {watchParty?.hostName}
                             </p>
-                        ) : (attendees.length != 0 &&
-                            <div className="my-3 space-y-2">
-                                {attendees.map((user) => (
-                                    <div
-                                        key={user.uid}
-                                        className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
-                                    >
-                                        <Avatar>
-                                            <AvatarImage
-                                                src={user.photoURL ?? undefined}
-                                                referrerPolicy="no-referrer"
-                                            />
-                                            <AvatarFallback>
-                                                {user.name.charAt(0).toUpperCase()}
-                                            </AvatarFallback>
-                                        </Avatar>
-
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">
-                                                {user.name.trim().split(/\s+/).slice(0, 2).join(" ")}
-                                                {user.uid === appUser?.uid && (
-                                                    <span className="ml-2 text-xs text-blue-600">(Tú)</span>
-                                                )}
-                                            </p>                                            
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        </>}
                     </div>
+
+                    {!isFinished && isAdmin && isWatchParty && (
+                        <section className="my-2 rounded-3xl bg-red-50 px-6 py-2">
+                            <button
+                                onClick={() => {
+                                    const confirmed = window.confirm(
+                                        "¿Seguro que deseas quitar este watch party?"
+                                    );
+                                    if (!confirmed) return;
+                                    handleRemoveWatchParty();
+                                }}
+                                className="mt-5 w-full rounded-2xl bg-red-600 py-4 text-base font-black text-white"
+                            >
+                                No se verá en grupo
+                            </button>
+
+                            <p className="my-2 text-xs text-center font-medium text-gray-600">
+                                Este partido dejará de aparecer en Veremos juntos y se ocultará la asistencia.
+                            </p>
+                        </section>
+                    )}
+
+                    {isWatchParty && (<>
+                        {!isFinished && <EditableAttendanceSelector
+                            matchId={match.id}
+                            attendanceStatus={attendanceStatus}
+                            onAttendanceChange={onAttendanceChange}
+                            onClearAttendance={onClearAttendance}
+                        />}
+
+                        {isFinished && <div className="mt-3 flex items-center justify-between">
+                            <p className="text-sm font-semibold text-gray-900">Tu asistencia</p>
+                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+                                {attendanceStatus
+                                    ? finishedAttendanceOptions.find((option) => option.value === attendanceStatus)?.label
+                                    : "Sin confirmar"}
+                            </span>
+                        </div>}
+
+                        <div className="mt-6 rounded-2xl bg-gray-50 p-4">
+                            <p className="text-sm font-semibold text-gray-900">
+                                {!isFinished ? `Asistentes (${attendees.length})` : `Asistieron (${attendees.length})`}
+                            </p>
+                            {(attendees.length === 0 && !isFinished) ? (
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Todavía no hay asistentes registrados.
+                                </p>
+                            ) : (attendees.length != 0 &&
+                                <div className="my-3 space-y-2">
+                                    {attendees.map((user) => (
+                                        <div
+                                            key={user.uid}
+                                            className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                                        >
+                                            <Avatar>
+                                                <AvatarImage
+                                                    src={user.photoURL ?? undefined}
+                                                    referrerPolicy="no-referrer"
+                                                />
+                                                <AvatarFallback>
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {user.name.trim().split(/\s+/).slice(0, 2).join(" ")}
+                                                    {user.uid === appUser?.uid && (
+                                                        <span className="ml-2 text-xs text-blue-600">(Tú)</span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </>
+                    )}
+
+                    {!isFinished && isAdmin && !isWatchParty && !isPromotingWatchParty && (
+                        <section className="mt-6 rounded-3xl bg-emerald-50 p-6">
+                            <p className="text-lg font-black text-gray-950">
+                                ¿Veremos este partido juntos?
+                            </p>
+
+                            <p className="mt-2 text-sm font-medium text-gray-600">
+                                Elige una casa y activa la asistencia para este partido.
+                            </p>
+
+                            <button
+                                onClick={() => setIsPromotingWatchParty(true)}
+                                className="mt-5 w-full rounded-2xl bg-emerald-600 py-4 text-base font-black text-white"
+                            >
+                                Promover partido
+                            </button>
+                        </section>
+                    )}
+
+                    {!isFinished && isAdmin && !isWatchParty && isPromotingWatchParty && (
+                        <section className="mt-6 rounded-3xl bg-emerald-50 p-6">
+                            <p className="text-lg font-black text-gray-950">
+                                Promover partido
+                            </p>
+
+                            <p className="mt-2 text-sm font-medium text-gray-600">
+                                Selecciona en qué casa se verá este partido.
+                            </p>
+
+                            <select
+                                value={selectedHostUserId}
+                                onChange={(e) => setSelectedHostUserId(e.target.value)}
+                                className="mt-5 w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 text-base font-bold text-gray-900 outline-none"
+                            >
+                                <option value="">Seleccionar casa</option>
+
+                                {members.map((member) => (
+                                    <option key={member.uid} value={member.uid}>
+                                        Casa de {member.name.split(" ")[0]}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {selectedHost && (
+                                <div className="mt-4 rounded-2xl bg-white p-4">
+                                    <p className="text-sm font-semibold text-gray-500">
+                                        Casa seleccionada
+                                    </p>
+                                    <p className="mt-1 text-base font-black text-gray-950">
+                                        {selectedHouseName}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="mt-5 flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setIsPromotingWatchParty(false);
+                                        setSelectedHostUserId("");
+                                    }}
+                                    className="flex-1 rounded-2xl bg-white py-4 text-base font-black text-gray-700"
+                                >
+                                    Cancelar
+                                </button>
+
+                                <button
+                                    disabled={!selectedHost || isSavingWatchParty}
+                                    onClick={handlePromoteToWatchParty}
+                                    className="flex-1 rounded-2xl bg-emerald-600 py-4 text-base font-black text-white disabled:opacity-50"
+                                >
+                                    {isSavingWatchParty ? "Guardando..." : "Guardar"}
+                                </button>
+                            </div>
+                        </section>
+                    )}
 
                     <div className="mt-6 rounded-2xl bg-gray-50 p-5">
                         <div className="flex items-center justify-between">

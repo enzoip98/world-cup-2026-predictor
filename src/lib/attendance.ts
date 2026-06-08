@@ -1,5 +1,5 @@
 import {
-    collection,
+    collection,query,where,writeBatch,getDocs,
     deleteDoc,
     doc,
     onSnapshot,
@@ -87,4 +87,26 @@ export async function clearAttendanceFromFirebase({
     await deleteDoc(
         doc(db, "parties", partyId, "attendance", attendanceId)
     );
+}
+
+export async function deleteAttendanceByMatch(
+    partyId: string,
+    matchId: string
+) {
+    const attendanceRef = collection(db, "parties", partyId, "attendance");
+
+    const q = query(
+        attendanceRef,
+        where("matchId", "==", matchId)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const batch = writeBatch(db);
+
+    snapshot.docs.forEach((docSnap) => {
+        batch.delete(docSnap.ref);
+    });
+
+    await batch.commit();
 }

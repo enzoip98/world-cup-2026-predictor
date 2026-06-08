@@ -21,10 +21,11 @@ import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/resu
 import { AppUser, subscribeToUsers } from "@/lib/users";
 import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
 import { getPartyById, Party } from "@/lib/parties";
+import { subscribeToWatchPartyMatches, WatchPartyMatchesMap } from "@/lib/partyMatches";
 
 export default function Home() {
 
-  const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard">("matches");
+  const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard" | "watching_matches">("matches");
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -32,6 +33,8 @@ export default function Home() {
   const { appUser, loadingAuth, isAdmin } = useAuth();
   const [partyUsers, setPartyUsers] = useState<AppUser[]>([]);
   const [party, setParty] = useState<Party | null>(null);
+  const [watchPartyMatches, setWatchPartyMatches] = useState<WatchPartyMatchesMap>({});
+  const [isSavingWatchParty, setIsSavingWatchParty] = useState(false);
 
   const [predictions, setPredictions] = useState<PredictionsMap>({});
   const [partyPredictions, setPartyPredictions] = useState<PredictionsMap>({});
@@ -82,6 +85,17 @@ export default function Home() {
     const unsubscribe = subscribeToResults(setResults);
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    const unsubscribe = subscribeToWatchPartyMatches(
+      appUser?.activePartyId,
+      setWatchPartyMatches
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId]);
 
   useEffect(() => {
     if (!appUser?.activePartyId) return;
@@ -233,6 +247,26 @@ export default function Home() {
     )
     : [];
 
+  const watchPartyOnlyMatches = matches.filter(
+    (match) => !!watchPartyMatches[match.id]
+  );
+
+  const selectedWatchParty = selectedMatch
+    ? watchPartyMatches[selectedMatch.id]
+    : undefined;
+
+  const selectedIsWatchParty = !!selectedWatchParty;
+
+  const upcomingWatchPartyMatches = watchPartyOnlyMatches.filter(
+    (match) =>
+      getMatchStatus(match, results[match.id], now) !== "finished"
+  );
+
+  const finishedWatchPartyMatches = watchPartyOnlyMatches.filter(
+    (match) =>
+      getMatchStatus(match, results[match.id], now) === "finished"
+  );
+
   if (loadingAuth) {
     return <LoadingScreen />;
   }
@@ -249,7 +283,7 @@ export default function Home() {
   return (
     <main className="h-screen bg-gray-50 px-5 py-8 relative">
 
-      {(isSavingPrediction || isSavingResult || isSavingAttendance) &&
+      {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty) &&
         <LoadingScreen />
       }
 
@@ -294,17 +328,25 @@ export default function Home() {
         <div className="mb-6 flex rounded-2xl bg-white p-1 shadow-sm w-fit">
           <button
             onClick={() => setActiveTab("matches")}
-            className={`rounded-xl px-5 py-2 text-sm font-semibold transition ${activeTab === "matches"
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "matches"
               ? "bg-gray-900 text-white"
               : "text-gray-600 hover:bg-gray-100"
               }`}
           >
             Partidos
           </button>
-
+          <button
+            onClick={() => setActiveTab("watching_matches")}
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "watching_matches"
+              ? "bg-gray-900 text-white"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
+          >
+            En grupo
+          </button>
           <button
             onClick={() => setActiveTab("calendar")}
-            className={`rounded-xl px-5 py-2 text-sm font-semibold transition ${activeTab === "calendar"
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "calendar"
               ? "bg-gray-900 text-white"
               : "text-gray-600 hover:bg-gray-100"
               }`}
@@ -314,7 +356,7 @@ export default function Home() {
 
           <button
             onClick={() => setActiveTab("leaderboard")}
-            className={`rounded-xl px-5 py-2 text-sm font-semibold transition ${activeTab === "leaderboard"
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "leaderboard"
               ? "bg-gray-900 text-white"
               : "text-gray-600 hover:bg-gray-100"
               }`}
@@ -325,16 +367,63 @@ export default function Home() {
 
         {activeTab === "matches" && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {matches.map((match) => (
-              <MatchCard key={match.id} match={match} onSelect={setSelectedMatch}
+            {matches.map((match) => {
+
+              const watchParty = watchPartyMatches[match.id];
+              const isWatchParty = !!watchParty;
+
+              return <MatchCard key={match.id} match={match} onSelect={setSelectedMatch}
                 attendanceCount={
                   Object.values(attendance[match.id] ?? {}).filter(
                     status => status === "going"
                   ).length
                 }
-                status={getMatchStatus(match, results[match.id], now)} />
-            ))}
+                status={getMatchStatus(match, results[match.id], now)}
+                isWatchParty={isWatchParty}
+                watchParty={watchParty} />
+            })}
           </div>
+        )}
+
+        {activeTab === "watching_matches" && (
+          <>
+            <p className="text-lg font-bold my-5">Veremos juntos</p>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {upcomingWatchPartyMatches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  onSelect={setSelectedMatch}
+                  attendanceCount={
+                    Object.values(attendance[match.id] ?? {}).filter(
+                      (status) => status === "going"
+                    ).length
+                  }
+                  status={getMatchStatus(match, results[match.id], now)}
+                  isWatchParty={true}
+                  watchParty={watchPartyMatches[match.id]}
+                />
+              ))}
+            </div>
+            <p className="text-lg font-bold my-5">Vimos juntos</p>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {finishedWatchPartyMatches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  onSelect={setSelectedMatch}
+                  attendanceCount={
+                    Object.values(attendance[match.id] ?? {}).filter(
+                      (status) => status === "going"
+                    ).length
+                  }
+                  status={getMatchStatus(match, results[match.id], now)}
+                  isWatchParty={true}
+                  watchParty={watchPartyMatches[match.id]}
+                />
+              ))}
+            </div>
+          </>
         )}
 
         {activeTab === "calendar" && <MatchCalendar matches={matches} onSelect={setSelectedMatch} />}
@@ -358,6 +447,10 @@ export default function Home() {
         onClose={() => setSelectedMatch(null)}
         status={selectedStatus}
         appUser={appUser}
+        isWatchParty={selectedIsWatchParty}
+        watchParty={selectedWatchParty}
+        members={partyUsers}
+        onSavingWatchPartyChange={setIsSavingWatchParty}
       />
     </main>
   );
