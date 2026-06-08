@@ -9,7 +9,7 @@ import {
     writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { matches } from "@/data/matches";
+import { matchesData } from "@/data/matchesData";
 import { Match } from "@/types/Match";
 import { Teams } from "@/data/Teams";
 
@@ -33,7 +33,7 @@ function getTeamIdByFifaCode(fifaCode: string | null): string | null {
 export async function seedMatchesToFirebase() {
     const batch = writeBatch(db);
 
-    matches.forEach((match) => {
+    matchesData.forEach((match) => {
         const matchRef = doc(db, "matches", match.id);
 
         const matchToSave: Match = {
@@ -42,11 +42,6 @@ export async function seedMatchesToFirebase() {
             homeTeamId: getTeamIdByFifaCode(match.homeTeamId),
             awayTeamId: getTeamIdByFifaCode(match.awayTeamId),
             kickoff: match.kickoff,
-            isWatchParty: false,
-            hostUserId: null,
-            hostName: null,
-            locationName: null,
-            notes: null,
         };
 
         batch.set(

@@ -4,7 +4,7 @@
 import { Match } from "@/types/Match";
 
 // Para fase eliminatoria, homeTeamId/awayTeamId quedan null hasta que se conozcan los clasificados.
-export const matches: Match[] = [
+export const matchesData: Match[] = [
     { id: "m001-mex-rsa", matchNumber: 1, stage: "group", group: "A", date: "2026-06-11", time: "14:00", kickoff: "2026-06-11T14:00:00-05:00", homeTeamId: "mex", awayTeamId: "rsa", venue: "Estadio Azteca", city: "Mexico City", country: "Mexico" },
     { id: "m002-kor-cze", matchNumber: 2, stage: "group", group: "A", date: "2026-06-11", time: "21:00", kickoff: "2026-06-11T21:00:00-05:00", homeTeamId: "kor", awayTeamId: "cze", venue: "Estadio Akron", city: "Zapopan", country: "Mexico" },
     { id: "m003-can-bih", matchNumber: 3, stage: "group", group: "B", date: "2026-06-12", time: "14:00", kickoff: "2026-06-12T14:00:00-05:00", homeTeamId: "can", awayTeamId: "bih", venue: "BMO Field", city: "Toronto", country: "Canada" },
