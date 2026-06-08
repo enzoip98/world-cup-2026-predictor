@@ -453,7 +453,7 @@ export default function Home() {
             ))}
           </div>
 
-          <div
+          { isAdmin && <div
             className={`grid rounded-3xl bg-white p-1 shadow-sm grid-cols-1}`}
           >
             {secondaryTabs.map((tab) => (
@@ -468,7 +468,7 @@ export default function Home() {
                 {tab.label}
               </button>
             ))}
-          </div>
+          </div>}
         </div>
 
         {activeTab === "matches" && (
