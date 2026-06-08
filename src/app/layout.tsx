@@ -17,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mundial 2026",
-  description: "Partidos con la mancha",
+  title: "World Cup 2026 Game",
+  description:
+    "Pronostica resultados, organiza watch parties, marca tu asistencia, mira el ranking y compite con tus amigos durante el Mundial 2026.",
 };
 
 export default function RootLayout({
