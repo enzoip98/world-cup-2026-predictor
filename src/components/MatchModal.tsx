@@ -31,6 +31,8 @@ type Props = {
     }) => void;
     status: MatchStatus;
     attendees: AppUser[];
+    maybeAttendees: AppUser[];
+    notAttendees: AppUser[];
     appUser: AppUser;
     isWatchParty: boolean;
     watchParty: WatchPartyMatch | undefined;
@@ -51,7 +53,7 @@ const finishedAttendanceOptions: AttendanceOption[] = [
 ];
 
 export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance, onAttendanceChange,
-    onSavePrediction, prediction, onSaveResult, resultMatch, status, attendees,
+    onSavePrediction, prediction, onSaveResult, resultMatch, status, attendees, maybeAttendees, notAttendees,
     appUser, isWatchParty, watchParty, members, onSavingWatchPartyChange }: Props) {
 
     const [isPredicting, setIsPredicting] = useState(false);
@@ -163,6 +165,8 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
             onSavingWatchPartyChange?.(false);
         }
     };
+
+    //TODO: cuando termino el partido, mejorar lista de asistentes
 
     return (
         <div
@@ -314,15 +318,16 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                         </div>}
 
                         <div className="mt-6 rounded-2xl bg-gray-50 p-4">
-                            <p className="text-sm font-semibold text-gray-900">
-                                {!isFinished ? `Asistentes (${attendees.length})` : `Asistieron (${attendees.length})`}
-                            </p>
-                            {(attendees.length === 0 && !isFinished) ? (
+
+                            {((attendees.length === 0 && maybeAttendees.length === 0 && notAttendees.length === 0) && !isFinished) ? (
                                 <p className="mt-1 text-sm text-gray-500">
                                     Todavía no hay asistentes registrados.
                                 </p>
-                            ) : (attendees.length != 0 &&
-                                <div className="my-3 space-y-2">
+                            ) : (<>
+                                {attendees.length != 0 && <div className="my-3 space-y-2">
+                                    <p className="text-sm font-semibold text-gray-900">
+                                        {!isFinished ? `Asistentes (${attendees.length})` : `Asistieron (${attendees.length})`}
+                                    </p>
                                     {attendees.map((user) => (
                                         <div
                                             key={user.uid}
@@ -348,7 +353,70 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             </div>
                                         </div>
                                     ))}
-                                </div>
+                                </div>}
+
+                                {maybeAttendees.length != 0 && <div className="my-3 space-y-2">
+                                    <p className="text-sm font-semibold text-gray-900">
+                                        {!isFinished ? `Tal vez vayan (${maybeAttendees.length})` : `No fueron (${maybeAttendees.length})`}
+                                    </p>
+                                    {maybeAttendees.map((user) => (
+                                        <div
+                                            key={user.uid}
+                                            className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                                        >
+                                            <Avatar>
+                                                <AvatarImage
+                                                    src={user.avatarUrl ?? user.photoURL ?? undefined}
+                                                    referrerPolicy="no-referrer"
+                                                />
+                                                <AvatarFallback>
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {user.name.trim().split(/\s+/).slice(0, 2).join(" ")}
+                                                    {user.uid === appUser?.uid && (
+                                                        <span className="ml-2 text-xs text-blue-600">(Tú)</span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>}
+
+                                {notAttendees.length != 0 && <div className="my-3 space-y-2">
+                                    <p className="text-sm font-semibold text-gray-900">
+                                        {!isFinished ? `No irán (${notAttendees.length})` : `No fueron (${notAttendees.length})`}
+                                    </p>
+                                    {notAttendees.map((user) => (
+                                        <div
+                                            key={user.uid}
+                                            className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                                        >
+                                            <Avatar>
+                                                <AvatarImage
+                                                    src={user.avatarUrl ?? user.photoURL ?? undefined}
+                                                    referrerPolicy="no-referrer"
+                                                />
+                                                <AvatarFallback>
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {user.name.trim().split(/\s+/).slice(0, 2).join(" ")}
+                                                    {user.uid === appUser?.uid && (
+                                                        <span className="ml-2 text-xs text-blue-600">(Tú)</span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>}
+                            </>
                             )}
                         </div>
                     </>

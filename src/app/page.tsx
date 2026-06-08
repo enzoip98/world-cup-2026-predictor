@@ -307,6 +307,18 @@ export default function Home() {
     )
     : [];
 
+  const selectedMaybeAttendees = selectedMatch
+    ? partyUsers.filter(
+      user => attendance[selectedMatch.id]?.[user.uid] === "maybe"
+    )
+    : [];
+
+  const selectedNotAttendees = selectedMatch
+    ? partyUsers.filter(
+      user => attendance[selectedMatch.id]?.[user.uid] === "not_going"
+    )
+    : [];
+
   const watchPartyOnlyMatches = matches.filter(
     (match) => !!watchPartyMatches[match.id]
   );
@@ -453,7 +465,7 @@ export default function Home() {
             ))}
           </div>
 
-          { isAdmin && <div
+          {isAdmin && <div
             className={`grid rounded-3xl bg-white p-1 shadow-sm grid-cols-1}`}
           >
             {secondaryTabs.map((tab) => (
@@ -610,6 +622,8 @@ export default function Home() {
         match={selectedMatch}
         attendanceStatus={selectedAttendanceStatus}
         attendees={selectedAttendees}
+        maybeAttendees = {selectedMaybeAttendees}
+        notAttendees={selectedNotAttendees}
         onSavePrediction={handleSavePrediction}
         onSaveResult={handleSaveResult}
         resultMatch={selectedMatch ? results[selectedMatch.id] : undefined}
