@@ -368,7 +368,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                 onClick={() => setIsPromotingWatchParty(true)}
                                 className="mt-5 w-full rounded-2xl bg-emerald-600 py-4 text-base font-black text-white"
                             >
-                                Promover partido
+                                Proponer junte
                             </button>
                         </section>
                     )}
@@ -376,7 +376,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     {!isFinished && isAdmin && !isWatchParty && isPromotingWatchParty && (
                         <section className="mt-6 rounded-3xl bg-emerald-50 p-6">
                             <p className="text-lg font-black text-gray-950">
-                                Promover partido
+                                Proponer junte
                             </p>
 
                             <p className="mt-2 text-sm font-medium text-gray-600">

@@ -20,12 +20,13 @@ import { PredictionsMap, savePredictionToFirebase, subscribeToMyPredictions, sub
 import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
 import { AppUser, subscribeToUsers } from "@/lib/users";
 import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
-import { getPartyById, Party } from "@/lib/parties";
+import { getPartyById, Party, promoteUserToAdmin, removeUserFromAdmin, subscribeToParty } from "@/lib/parties";
 import { subscribeToWatchPartyMatches, WatchPartyMatchesMap } from "@/lib/partyMatches";
+import { AdminPanel } from "@/components/AdminPanel";
 
 export default function Home() {
 
-  const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard" | "watching_matches">("matches");
+  const [activeTab, setActiveTab] = useState<"matches" | "calendar" | "leaderboard" | "watching_matches" | "admin">("matches");
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -46,6 +47,8 @@ export default function Home() {
   const [attendance, setAttendance] = useState<AttendanceByMatchMap>({});
   const [isSavingAttendance, setIsSavingAttendance] = useState(false);
 
+  const [isSavingAdmin, setIsSavingAdmin] = useState(false);
+
   useEffect(() => {
     if (!appUser?.activePartyId) return;
     const usersSuscribe = subscribeToUsers(appUser?.activePartyId, setPartyUsers);
@@ -55,7 +58,9 @@ export default function Home() {
   useEffect(() => {
     if (!appUser?.activePartyId) return;
 
-    getPartyById(appUser.activePartyId).then(setParty);
+    const unsubscribe = subscribeToParty(appUser.activePartyId, setParty);
+
+    return () => unsubscribe();
   }, [appUser?.activePartyId]);
 
   useEffect(() => {
@@ -221,6 +226,34 @@ export default function Home() {
     }
   };
 
+  const handlePromoteUser = async (userId: string) => {
+    if (!party) return;
+    if (!isAdmin) return;
+
+    try {
+      setIsSavingAdmin(true);
+      await promoteUserToAdmin(party.id, userId);
+    } catch (error) {
+      console.error("Error promoviendo usuario:", error);
+    } finally {
+      setIsSavingAdmin(false);
+    }
+  };
+
+  const handleDemoteUser = async (userId: string) => {
+    if (!party) return;
+    if (!isAdmin) return;
+
+    try {
+      setIsSavingAdmin(true);
+      await removeUserFromAdmin(party.id, userId);
+    } catch (error) {
+      console.error("Error quitando admin:", error);
+    } finally {
+      setIsSavingAdmin(false);
+    }
+  };
+
   const leaderboard = calculateLeaderboard(
     partyUsers,
     partyPredictions,
@@ -283,7 +316,7 @@ export default function Home() {
   return (
     <main className="h-screen bg-gray-50 px-5 py-8 relative">
 
-      {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty) &&
+      {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty || isSavingAdmin) &&
         <LoadingScreen />
       }
 
@@ -363,6 +396,17 @@ export default function Home() {
           >
             Tabla
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab("admin")}
+              className={`rounded-xl px-3 py-2 text-sm font-semibold transition ${activeTab === "admin"
+                ? "bg-gray-900 text-white"
+                : "text-gray-600 hover:bg-gray-100"
+                }`}
+            >
+              Admin
+            </button>
+          )}
         </div>
 
         {activeTab === "matches" && (
@@ -430,6 +474,16 @@ export default function Home() {
 
         {activeTab === "leaderboard" && (
           <LeaderboardTable leaderboard={leaderboard} />
+        )}
+
+        {activeTab === "admin" && isAdmin && (
+          <AdminPanel
+            party={party}
+            members={partyUsers}
+            appUser={appUser}
+            onPromoteUser={handlePromoteUser}
+            onDemoteUser={handleDemoteUser}
+          />
         )}
 
       </section>

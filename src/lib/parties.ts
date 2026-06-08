@@ -1,5 +1,5 @@
 import {
-    collection,getDoc, 
+    collection, getDoc,
     doc,
     getDocs,
     limit,
@@ -7,7 +7,7 @@ import {
     serverTimestamp,
     setDoc,
     updateDoc,
-    where,
+    where, arrayUnion, arrayRemove, onSnapshot
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AppUser } from "@/lib/users";
@@ -17,7 +17,20 @@ export type Party = {
     name: string;
     code: string;
     ownerUserId: string;
+    adminUserIds?: string[];
 };
+
+export async function promoteUserToAdmin(partyId: string, userId: string) {
+    await updateDoc(doc(db, "parties", partyId), {
+        adminUserIds: arrayUnion(userId),
+    });
+}
+
+export async function removeUserFromAdmin(partyId: string, userId: string) {
+    await updateDoc(doc(db, "parties", partyId), {
+        adminUserIds: arrayRemove(userId),
+    });
+}
 
 export async function joinPartyByCode(code: string, user: AppUser) {
     const normalizedCode = code.trim().toUpperCase();
@@ -65,4 +78,23 @@ export async function getPartyById(partyId: string): Promise<Party | null> {
         id: snapshot.id,
         ...snapshot.data(),
     } as Party;
+}
+
+export function subscribeToParty(
+    partyId: string,
+    callback: (party: Party | null) => void
+) {
+    const partyRef = doc(db, "parties", partyId);
+
+    return onSnapshot(partyRef, (snapshot) => {
+        if (!snapshot.exists()) {
+            callback(null);
+            return;
+        }
+
+        callback({
+            id: snapshot.id,
+            ...snapshot.data(),
+        } as Party);
+    });
 }
