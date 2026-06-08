@@ -50,11 +50,11 @@ export default function Home() {
   const primaryTabs: TabItem[] = [
     { id: "matches", label: "Partidos" },
     { id: "watching_matches", label: "En grupo" },
+    { id: "leaderboard", label: "Tabla" }
   ];
 
   const secondaryTabs: TabItem[] = isAdmin
     ? [
-      { id: "leaderboard", label: "Tabla" },
       { id: "admin", label: "Admin" },
     ]
     : [{ id: "leaderboard", label: "Tabla" }];
@@ -454,8 +454,7 @@ export default function Home() {
           </div>
 
           <div
-            className={`grid rounded-3xl bg-white p-1 shadow-sm ${secondaryTabs.length === 1 ? "grid-cols-1" : "grid-cols-2"
-              }`}
+            className={`grid rounded-3xl bg-white p-1 shadow-sm grid-cols-1}`}
           >
             {secondaryTabs.map((tab) => (
               <button
