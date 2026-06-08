@@ -8,7 +8,7 @@ export function MatchModalHeader({
     awayTeam: Team;
 }) {
     return <>
-        <div className="my-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div className="mt-12 mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
             <div className="flex flex-col items-center gap-3 text-center">
                 <img
                     src={`https://flagcdn.com/w40/${homeTeam.iso2.toLowerCase()}.png`}
