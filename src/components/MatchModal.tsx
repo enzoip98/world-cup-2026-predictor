@@ -85,10 +85,10 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                 overflow-y-auto rounded-3xl bg-white px-6 shadow-xl"
                 onClick={(event) => event.stopPropagation()}>
 
-                <div className="bg-white my-4 sticky top-0 z-10 flex flex-col items-center justify-center gap-2">
+                <div className="bg-white my-4 flex flex-col items-center justify-center gap-2">
                     <button
                         onClick={onClose}
-                        className="absolute right-0 top-0 rounded-full bg-gray-200 px-3 m-1 py-1 text-md font-bold text-gray-600 hover:bg-gray-200">
+                        className="absolute right-1 top-1 rounded-full bg-gray-200 px-3 m-1 py-1 text-md font-bold text-gray-600 hover:bg-gray-200">
                         ×
                     </button>
                     {homeTeam && awayTeam && (
@@ -96,7 +96,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     )}
                 </div>
 
-                <div className="overflow-y-auto max-h-[calc(90vh-100px)] py-6">
+                <div>
                     <div className="space-y-3 text-sm text-gray-700">
                         <p>
                             <span className="font-semibold">Fecha:</span>{" "}
@@ -293,18 +293,25 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     {!isFinished ? (
 
                         !isSavingResult ? (<>
-                            <div className="mt-6 rounded-2xl bg-gray-50 p-5">
+                            <div className="my-6 rounded-2xl bg-gray-50 p-5">
                                 <div className="flex items-center justify-start">
                                     <div>
                                         <p className="text-sm text-center font-bold text-gray-950">Resultado oficial</p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setIsSavingResult(true)}
-                                    className="mt-4 w-full rounded-2xl bg-gray-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-gray-800"
-                                >
-                                    Registrar resultado
-                                </button>
+
+                                {appUser.role === "admin" ? <>
+                                    <button
+                                        onClick={() => setIsSavingResult(true)}
+                                        className="mt-4 w-full rounded-2xl bg-gray-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-gray-800"
+                                    >
+                                        Registrar resultado
+                                    </button>
+                                </> : <>
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        Aún no se ha registrado el resultado oficial.
+                                    </p>
+                                </>}
                             </div></>)
                             :
                             <div className="mt-6 rounded-2xl bg-gray-50 p-4">
