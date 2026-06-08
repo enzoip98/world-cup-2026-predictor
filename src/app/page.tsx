@@ -57,7 +57,7 @@ export default function Home() {
     ? [
       { id: "admin", label: "Admin" },
     ]
-    : [{ id: "leaderboard", label: "Tabla" }];
+    : [];
 
   const [partyUsers, setPartyUsers] = useState<AppUser[]>([]);
   const [party, setParty] = useState<Party | null>(null);
