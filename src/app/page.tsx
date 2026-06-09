@@ -24,6 +24,7 @@ import { Party, promoteUserToAdmin, removeUserFromAdmin, subscribeToParty } from
 import { subscribeToWatchPartyMatches, WatchPartyMatchesMap } from "@/lib/partyMatches";
 import { AdminPanel } from "@/components/AdminPanel";
 import { formatPeruDate, getPeruDateKey } from "@/utils/format";
+import { MyPredictionsTab } from "@/components/MyPredictionsTab";
 
 export default function Home() {
 
@@ -31,7 +32,8 @@ export default function Home() {
     | "matches"
     | "leaderboard"
     | "watching_matches"
-    | "admin";
+    | "admin"
+    | "my_predictions";
 
   type TabItem = {
     id: ActiveTab;
@@ -49,15 +51,20 @@ export default function Home() {
 
   const primaryTabs: TabItem[] = [
     { id: "matches", label: "Partidos" },
-    { id: "watching_matches", label: "En grupo" },
+    { id: "my_predictions", label: "Mis pronósticos" },
     { id: "leaderboard", label: "Tabla" }
   ];
 
-  const secondaryTabs: TabItem[] = isAdmin
-    ? [
-      { id: "admin", label: "Admin" },
-    ]
-    : [];
+  const secondaryTabs: TabItem[] = [
+    { id: "watching_matches", label: "En grupo" },
+  ];
+
+  if (isAdmin) {
+    secondaryTabs.push({
+      id: "admin",
+      label: "Admin",
+    });
+  }
 
   const [partyUsers, setPartyUsers] = useState<AppUser[]>([]);
   const [party, setParty] = useState<Party | null>(null);
@@ -465,22 +472,27 @@ export default function Home() {
             ))}
           </div>
 
-          {isAdmin && <div
-            className={`grid rounded-3xl bg-white p-1 shadow-sm grid-cols-1}`}
-          >
-            {secondaryTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-500"
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>}
+          {secondaryTabs.length > 0 && (
+            <div
+              className={`grid rounded-3xl bg-white p-1 shadow-sm ${secondaryTabs.length === 1
+                ? "grid-cols-1"
+                : "grid-cols-2"
+                }`}
+            >
+              {secondaryTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500"
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {activeTab === "matches" && (
@@ -561,6 +573,16 @@ export default function Home() {
           </section>
         )}
 
+        {activeTab === "my_predictions" && appUser && (
+          <MyPredictionsTab
+            matches={matches}
+            predictions={predictions}
+            results={results}
+            userId={appUser.uid}
+            onGoToMatches={() => setActiveTab("matches")}
+          />
+        )}
+
         {activeTab === "watching_matches" && (
           <>
             <p className="text-lg font-bold my-5">Veremos juntos</p>
@@ -622,7 +644,7 @@ export default function Home() {
         match={selectedMatch}
         attendanceStatus={selectedAttendanceStatus}
         attendees={selectedAttendees}
-        maybeAttendees = {selectedMaybeAttendees}
+        maybeAttendees={selectedMaybeAttendees}
         notAttendees={selectedNotAttendees}
         onSavePrediction={handleSavePrediction}
         onSaveResult={handleSaveResult}

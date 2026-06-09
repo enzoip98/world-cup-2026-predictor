@@ -39,13 +39,14 @@ export function calculateLeaderboard(
         let predictionsMade = 0;
 
         Object.entries(userPredictions).forEach(([matchId, prediction]) => {
+
+            predictionsMade++;
+
             const result = results[matchId];
 
             if (!result || result.status !== "finished") {
                 return;
             }
-
-            predictionsMade++;
 
             const score = calculatePredictionPoints(prediction, result);
 
