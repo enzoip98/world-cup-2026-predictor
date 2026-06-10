@@ -16,7 +16,7 @@ type Props = {
     specialPrediction: SpecialPrediction | null;
     hasWorldCupStarted: boolean;
     onSaveSpecialPredictionField: (
-        field: "championTeamId" | "runnerUpTeamId",
+        field: "championTeamId" | "runnerUpTeamId"| "topScorerPlayerId" | "bestPlayerId",
         value: string
     ) => Promise<void>;
 };
