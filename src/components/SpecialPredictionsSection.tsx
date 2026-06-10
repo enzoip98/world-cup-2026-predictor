@@ -93,7 +93,7 @@ export function SpecialPredictionsSection({
 
     return (
         <>
-            <section className="rounded-3xl bg-white p-5 shadow-sm my-4">
+            <section className="p-1">
                 <div className="mb-5">
                     <div className="flex items-center justify-between gap-3">
                         <h3 className="text-lg font-black text-gray-900">
@@ -101,7 +101,7 @@ export function SpecialPredictionsSection({
                         </h3>
 
                         <span className="rounded-full bg-cyan-600 px-3 py-1 text-xs font-black text-white">
-                            Hasta 50 pts más!
+                            50 pts más!
                         </span>
                     </div>
 
