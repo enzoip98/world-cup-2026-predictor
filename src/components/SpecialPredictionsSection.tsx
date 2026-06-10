@@ -93,7 +93,7 @@ export function SpecialPredictionsSection({
 
     return (
         <>
-            <section className="p-1">
+            <section className="rounded-3xl bg-white p-5 shadow-sm my-4">
                 <div className="mb-5">
                     <div className="flex items-center justify-between gap-3">
                         <h3 className="text-lg font-black text-gray-900">

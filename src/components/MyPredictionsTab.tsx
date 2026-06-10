@@ -16,7 +16,7 @@ type Props = {
     specialPrediction: SpecialPrediction | null;
     hasWorldCupStarted: boolean;
     onSaveSpecialPredictionField: (
-        field: "championTeamId" | "runnerUpTeamId"| "topScorerPlayerId" | "bestPlayerId",
+        field: "championTeamId" | "runnerUpTeamId" | "topScorerPlayerId" | "bestPlayerId",
         value: string
     ) => Promise<void>;
 };
@@ -63,84 +63,79 @@ export function MyPredictionsTab({
         return calculatePredictionPoints(prediction, result).points === 3;
     }).length;
 
-    if (predictedMatches.length === 0) {
-        return (
-            <section className="rounded-3xl bg-white px-6 py-10 text-center shadow-sm my-5">
-
+    return (
+        <>
+            <section>
                 <SpecialPredictionsSection
                     prediction={specialPrediction}
                     hasWorldCupStarted={hasWorldCupStarted}
                     onSaveField={onSaveSpecialPredictionField}
                 />
-
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-4xl">
-                    📝
-                </div>
-
-                <h2 className="text-xl font-black text-gray-900">
-                    Mis pronósticos
-                </h2>
-
-                <p className="mt-3 text-sm leading-6 text-gray-500">
-                    Todavía no hiciste ningún pronóstico.
-                    <br />
-                    Ve a la pestaña Partidos y registra tus marcadores antes de que
-                    empiece cada encuentro.
-                </p>
-
-                <button
-                    onClick={onGoToMatches}
-                    className="mt-6 w-full rounded-2xl bg-gray-900 py-4 text-sm font-black text-white"
-                >
-                    Ver partidos
-                </button>
             </section>
-        );
-    }
 
-    return (
-        <section className="space-y-5 my-5">
-            <div>
-                <h2 className="text-2xl font-black text-gray-900">
-                    Mis pronósticos
-                </h2>
-                <p className="mt-1 text-sm text-gray-500">
-                    Revisa los marcadores que ya registraste.
-                </p>
-            </div>
+            {predictedMatches.length === 0 ?
+                <section className="rounded-3xl bg-white px-6 py-10 text-center shadow-sm my-5">
 
-            <div className="grid grid-cols-3 gap-3">
-                <SummaryCard label="Hechos" value={predictedMatches.length} />
-                <SummaryCard label="Puntos" value={totalPoints} />
-                <SummaryCard label="Exactos" value={exactHits} />
-            </div>
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-4xl">
+                        📝
+                    </div>
+
+                    <h2 className="text-xl font-black text-gray-900">
+                        Mis pronósticos
+                    </h2>
+
+                    <p className="mt-3 text-sm leading-6 text-gray-500">
+                        Todavía no hiciste ningún pronóstico.
+                        <br />
+                        Ve a la pestaña Partidos y registra tus marcadores antes de que
+                        empiece cada encuentro.
+                    </p>
+
+                    <button
+                        onClick={onGoToMatches}
+                        className="mt-6 w-full rounded-2xl bg-gray-900 py-4 text-sm font-black text-white"
+                    >
+                        Ver partidos
+                    </button>
+                </section>
+                : <section className="space-y-5 my-5">
+                    <div>
+                        <h2 className="text-2xl font-black text-gray-900">
+                            Mis pronósticos
+                        </h2>
+                        <p className="mt-1 text-sm text-gray-500">
+                            Revisa los marcadores que ya registraste.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                        <SummaryCard label="Hechos" value={predictedMatches.length} />
+                        <SummaryCard label="Puntos" value={totalPoints} />
+                        <SummaryCard label="Exactos" value={exactHits} />
+                    </div>
 
 
-            <SpecialPredictionsSection
-                prediction={specialPrediction}
-                hasWorldCupStarted={hasWorldCupStarted}
-                onSaveField={onSaveSpecialPredictionField}
-            />
+                    {pendingPredictions.length > 0 && (
+                        <PredictionGroup
+                            title="🟡 Pendientes"
+                            matches={pendingPredictions}
+                            myPredictions={myPredictions}
+                            results={results}
+                        />
+                    )}
 
+                    {finishedPredictions.length > 0 && (
+                        <PredictionGroup
+                            title="🟢 Finalizados"
+                            matches={finishedPredictions}
+                            myPredictions={myPredictions}
+                            results={results}
+                        />
+                    )}
+                </section>
+            }
+        </>
 
-            {pendingPredictions.length > 0 && (
-                <PredictionGroup
-                    title="🟡 Pendientes"
-                    matches={pendingPredictions}
-                    myPredictions={myPredictions}
-                    results={results}
-                />
-            )}
-
-            {finishedPredictions.length > 0 && (
-                <PredictionGroup
-                    title="🟢 Finalizados"
-                    matches={finishedPredictions}
-                    myPredictions={myPredictions}
-                    results={results}
-                />
-            )}
-        </section>
     );
 }
 
