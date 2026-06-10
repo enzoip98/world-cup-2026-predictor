@@ -1,10 +1,11 @@
 // components/MyPredictionsTab.tsx
-import { PredictionsMap } from "@/lib/predictions";
+import { PredictionsMap, SpecialPrediction } from "@/lib/predictions";
 import { ScoreResultSection } from "@/components/ScoreResultSection";
 import { Match } from "@/types/Match";
 import { ResultsMap } from "@/lib/results";
 import { calculatePredictionPoints } from "@/utils/scoring";
 import { teamsById } from "@/data/Teams";
+import { SpecialPredictionsSection } from "./SpecialPredictionsSection";
 
 type Props = {
     matches: Match[];
@@ -12,6 +13,12 @@ type Props = {
     results: ResultsMap;
     userId: string;
     onGoToMatches: () => void;
+    specialPrediction: SpecialPrediction | null;
+    hasWorldCupStarted: boolean;
+    onSaveSpecialPredictionField: (
+        field: "championTeamId" | "runnerUpTeamId",
+        value: string
+    ) => Promise<void>;
 };
 
 export function MyPredictionsTab({
@@ -19,7 +26,7 @@ export function MyPredictionsTab({
     predictions,
     results,
     userId,
-    onGoToMatches,
+    onGoToMatches, specialPrediction, hasWorldCupStarted, onSaveSpecialPredictionField
 }: Props) {
     const myPredictions = predictions[userId] ?? {};
 
@@ -101,21 +108,13 @@ export function MyPredictionsTab({
                 <SummaryCard label="Exactos" value={exactHits} />
             </div>
 
-            <div className="rounded-3xl bg-white p-5 shadow-sm">
-                <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-base font-black text-gray-900">
-                        🏆 Pronósticos especiales
-                    </h3>
 
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500">
-                        Pronto
-                    </span>
-                </div>
+            <SpecialPredictionsSection
+                prediction={specialPrediction}
+                hasWorldCupStarted={hasWorldCupStarted}
+                onSaveField={onSaveSpecialPredictionField}
+            />
 
-                <p className="text-sm leading-6 text-gray-500">
-                    Aquí luego irán tu campeón, subcampeón, goleador y mejor jugador.
-                </p>
-            </div>
 
             {pendingPredictions.length > 0 && (
                 <PredictionGroup

@@ -108,3 +108,80 @@ export async function savePredictionToFirebase({
         { merge: false }
     );
 }
+
+export type SpecialPrediction = {
+    userId: string;
+    championTeamId?: string;
+    runnerUpTeamId?: string;
+    topScorerPlayerId?: string;
+    bestPlayerId?: string;
+    createdAt?: unknown;
+    updatedAt?: unknown;
+};
+
+export function subscribeToMySpecialPrediction(
+    partyId: string,
+    userId: string,
+    callback: (prediction: SpecialPrediction | null) => void
+) {
+    const predictionRef = doc(
+        db,
+        "parties",
+        partyId,
+        "specialPredictions",
+        userId
+    );
+
+    return onSnapshot(predictionRef, (snapshot) => {
+        if (!snapshot.exists()) {
+            callback(null);
+            return;
+        }
+
+        callback(snapshot.data() as SpecialPrediction);
+    });
+}
+
+export async function saveSpecialPredictionField({
+    partyId,
+    userId,
+    field,
+    value,
+    hasWorldCupStarted,
+}: {
+    partyId: string | null | undefined;
+    userId: string;
+    field:
+    | "championTeamId"
+    | "runnerUpTeamId"
+    | "topScorerPlayerId"
+    | "bestPlayerId";
+    value: string;
+    hasWorldCupStarted: boolean;
+}) {
+
+    if(!partyId) return;
+
+    if (hasWorldCupStarted) {
+        throw new Error("Los pronósticos especiales ya están bloqueados.");
+    }
+
+    const predictionRef = doc(
+        db,
+        "parties",
+        partyId,
+        "specialPredictions",
+        userId
+    );
+
+    await setDoc(
+        predictionRef,
+        {
+            userId,
+            [field]: value,
+            updatedAt: serverTimestamp(),
+            createdAt: serverTimestamp(),
+        },
+        { merge: true }
+    );
+}

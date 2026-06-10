@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { getMatchesFromFirebase } from "@/lib/matches";
 import { JoinPartyView } from "@/components/JoinPartyView";
-import { PredictionsMap, savePredictionToFirebase, subscribeToMyPredictions, subscribeToPartyPredictions } from "@/lib/predictions";
+import { PredictionsMap, savePredictionToFirebase, saveSpecialPredictionField, SpecialPrediction, subscribeToMyPredictions, subscribeToMySpecialPrediction, subscribeToPartyPredictions } from "@/lib/predictions";
 import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
 import { AppUser, subscribeToUsers } from "@/lib/users";
 import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
@@ -74,6 +74,8 @@ export default function Home() {
   const [predictions, setPredictions] = useState<PredictionsMap>({});
   const [partyPredictions, setPartyPredictions] = useState<PredictionsMap>({});
   const [isSavingPrediction, setIsSavingPrediction] = useState(false);
+  const [specialPrediction, setSpecialPrediction] = useState<SpecialPrediction | null>(null);
+  const [isSavingSpecialPrediction, setIsSavingSpecialPrediction] = useState(false);
 
   const [results, setResults] = useState<ResultsMap>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
@@ -104,6 +106,18 @@ export default function Home() {
       appUser.activePartyId,
       appUser.uid,
       setPredictions
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId, appUser?.uid]);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId || !appUser?.uid) return;
+
+    const unsubscribe = subscribeToMySpecialPrediction(
+      appUser.activePartyId,
+      appUser.uid,
+      setSpecialPrediction
     );
 
     return () => unsubscribe();
@@ -288,6 +302,37 @@ export default function Home() {
     }
   };
 
+  const hasWorldCupStarted = matches.some((match) => {
+    return new Date(match.kickoff).getTime() <= now;
+  });
+
+  const handleSaveSpecialPredictionField = async (
+    field:
+      | "championTeamId"
+      | "runnerUpTeamId"
+      | "topScorerPlayerId"
+      | "bestPlayerId",
+    value: string
+  ) => {
+    if (!appUser?.activePartyId || !appUser?.uid) return;
+
+    try {
+      setIsSavingSpecialPrediction(true);
+
+      await saveSpecialPredictionField({
+        partyId: appUser.activePartyId,
+        userId: appUser.uid,
+        field,
+        value,
+        hasWorldCupStarted,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSavingSpecialPrediction(false);
+    }
+  };
+
   const leaderboard = calculateLeaderboard(
     partyUsers,
     partyPredictions,
@@ -414,7 +459,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 px-5 py-8 relative">
 
-      {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty || isSavingAdmin) &&
+      {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty || isSavingAdmin || isSavingSpecialPrediction) &&
         <LoadingScreen />
       }
 
@@ -580,6 +625,9 @@ export default function Home() {
             results={results}
             userId={appUser.uid}
             onGoToMatches={() => setActiveTab("matches")}
+            specialPrediction={specialPrediction}
+            hasWorldCupStarted={hasWorldCupStarted}
+            onSaveSpecialPredictionField={handleSaveSpecialPredictionField}
           />
         )}
 
@@ -624,9 +672,9 @@ export default function Home() {
           </>
         )}
 
-        {activeTab === "leaderboard" && (
+        <div className={activeTab === "leaderboard" ? "block" : "hidden"}>
           <LeaderboardTable leaderboard={leaderboard} />
-        )}
+        </div>
 
         {activeTab === "admin" && isAdmin && (
           <AdminPanel
