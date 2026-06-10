@@ -13,7 +13,7 @@ import { matchesData } from "@/data/matchesData";
 import { Match } from "@/types/Match";
 import { Teams } from "@/data/Teams";
 
-export const teamsByFifaCode = Object.fromEntries(
+const teamsByFifaCode = Object.fromEntries(
     Teams.map((team) => [team.fifaCode, team])
 );
 

@@ -66,6 +66,13 @@ export function MyPredictionsTab({
     if (predictedMatches.length === 0) {
         return (
             <section className="rounded-3xl bg-white px-6 py-10 text-center shadow-sm my-5">
+
+                <SpecialPredictionsSection
+                    prediction={specialPrediction}
+                    hasWorldCupStarted={hasWorldCupStarted}
+                    onSaveField={onSaveSpecialPredictionField}
+                />
+
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-4xl">
                     📝
                 </div>

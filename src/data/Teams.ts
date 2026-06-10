@@ -85,6 +85,10 @@ export const teamsById = Object.fromEntries(
     Teams.map((team) => [team.id, team])
 ) as Record<string, Team>;
 
+export const teamsByFifaCode = Object.fromEntries(
+    Teams.map((team) => [team.fifaCode.toLowerCase(), team])
+) as Record<string, Team>;
+
 
 export const getFlagEmoji = (iso2: string) =>
     iso2
