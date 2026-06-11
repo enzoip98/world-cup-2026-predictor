@@ -1,7 +1,9 @@
 import { AppUser } from "@/lib/users";
-import { calculatePredictionPoints } from "./scoring";
+import { calculatePredictionPoints, calculateSpecialPredictionPoints } from "./scoring";
 import { MatchResult } from "@/types/MatchResult";
 import { Prediction } from "@/types/Prediction";
+import { SpecialPrediction, SpecialPredictionsMap } from "@/lib/predictions";
+import { SpecialResults } from "@/lib/specialResults";
 
 type ResultsMap = {
     [matchId: string]: MatchResult;
@@ -28,11 +30,15 @@ export type LeaderboardRow = {
 export function calculateLeaderboard(
     users: AppUser[],
     predictions: PredictionsMap,
-    results: ResultsMap
+    results: ResultsMap,
+    specialPredictions: SpecialPredictionsMap,
+    specialResults: SpecialResults | null
 ): LeaderboardRow[] {
     const leaderboard = users.map(user => {
         const userPredictions = predictions[user.uid] ?? {};
-        let points = 0;
+        const userSpecialPrediction = specialPredictions[user.uid] ?? null;
+
+        let matchPoints = 0;
         let exactScores = 0;
         let correctResults = 0;
         let failed = 0;
@@ -50,18 +56,25 @@ export function calculateLeaderboard(
 
             const score = calculatePredictionPoints(prediction, result);
 
-            points += score.points;
+            matchPoints += score.points;
 
             if (score.exactScore) exactScores++;
             else if (score.correctResult) correctResults++;
             else failed++;
         });
 
+        const specialPoints = calculateSpecialPredictionPoints(
+            userSpecialPrediction,
+            specialResults
+        );
+
         return {
             userId: user.uid,
             name: user.name.split(" ")[0],
             avatarUrl: user.avatarUrl ?? undefined,
-            points,
+            points: (matchPoints + specialPoints),
+            matchPoints,
+            specialPoints,
             exactScores,
             correctResults,
             failed,

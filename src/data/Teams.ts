@@ -96,3 +96,13 @@ export const getFlagEmoji = (iso2: string) =>
         .replace(/./g, char =>
             String.fromCodePoint(char.charCodeAt(0) + 127397)
         );
+
+export const favoriteTeamIds = [
+    "argentina",
+    "brazil",
+    "france",
+    "spain",
+    "england",
+    "germany",
+    "portugal"
+];

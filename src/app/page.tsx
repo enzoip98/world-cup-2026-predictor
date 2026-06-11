@@ -16,7 +16,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { getMatchesFromFirebase } from "@/lib/matches";
 import { JoinPartyView } from "@/components/JoinPartyView";
-import { PredictionsMap, savePredictionToFirebase, saveSpecialPredictionField, SpecialPrediction, subscribeToMyPredictions, subscribeToMySpecialPrediction, subscribeToPartyPredictions } from "@/lib/predictions";
+import {
+  PredictionsMap, savePredictionToFirebase, saveSpecialPredictionField,
+  SpecialPrediction,
+  SpecialPredictionsMap, subscribeToMyPredictions, subscribeToPartyPredictions, subscribeToPartySpecialPredictions
+} from "@/lib/predictions";
 import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
 import { AppUser, subscribeToUsers } from "@/lib/users";
 import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
@@ -25,6 +29,7 @@ import { subscribeToWatchPartyMatches, WatchPartyMatchesMap } from "@/lib/partyM
 import { AdminPanel } from "@/components/AdminPanel";
 import { formatPeruDate, getPeruDateKey } from "@/utils/format";
 import { MyPredictionsTab } from "@/components/MyPredictionsTab";
+import { saveSpecialResultField, SpecialResultField, SpecialResults, subscribeToSpecialResults } from "@/lib/specialResults";
 
 export default function Home() {
 
@@ -74,11 +79,13 @@ export default function Home() {
   const [predictions, setPredictions] = useState<PredictionsMap>({});
   const [partyPredictions, setPartyPredictions] = useState<PredictionsMap>({});
   const [isSavingPrediction, setIsSavingPrediction] = useState(false);
-  const [specialPrediction, setSpecialPrediction] = useState<SpecialPrediction | null>(null);
+  const [specialPredictions, setSpecialPredictions] = useState<SpecialPredictionsMap>({});
+  const [specialResults, setSpecialResults] = useState<SpecialResults | null>(null);
   const [isSavingSpecialPrediction, setIsSavingSpecialPrediction] = useState(false);
 
   const [results, setResults] = useState<ResultsMap>({});
   const [isSavingResult, setIsSavingResult] = useState(false);
+  const [isSavingSpecialResult, setIsSavingSpecialResult] = useState(false);
 
   const [attendance, setAttendance] = useState<AttendanceByMatchMap>({});
   const [isSavingAttendance, setIsSavingAttendance] = useState(false);
@@ -112,18 +119,6 @@ export default function Home() {
   }, [appUser?.activePartyId, appUser?.uid]);
 
   useEffect(() => {
-    if (!appUser?.activePartyId || !appUser?.uid) return;
-
-    const unsubscribe = subscribeToMySpecialPrediction(
-      appUser.activePartyId,
-      appUser.uid,
-      setSpecialPrediction
-    );
-
-    return () => unsubscribe();
-  }, [appUser?.activePartyId, appUser?.uid]);
-
-  useEffect(() => {
     if (!appUser?.activePartyId) return;
 
     const unsubscribe = subscribeToPartyPredictions(
@@ -135,9 +130,31 @@ export default function Home() {
   }, [appUser?.activePartyId]);
 
   useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    const unsubscribe = subscribeToPartySpecialPredictions(
+      appUser.activePartyId,
+      setSpecialPredictions
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId]);
+
+  useEffect(() => {
     const unsubscribe = subscribeToResults(setResults);
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    const unsubscribe = subscribeToSpecialResults(
+      appUser.activePartyId,
+      setSpecialResults
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId]);
 
   useEffect(() => {
     if (!appUser?.activePartyId) return;
@@ -181,6 +198,29 @@ export default function Home() {
       console.error("Error guardando predicción:", error);
     } finally {
       setIsSavingPrediction(false);
+    }
+  };
+
+  const handleSaveSpecialResultField = async (
+    field: SpecialResultField,
+    value: string
+  ) => {
+    if (!appUser?.activePartyId) return;
+    if (!appUser?.uid) return;
+    if (!isAdmin) return;
+
+    try {
+      setIsSavingSpecialResult(true);
+      await saveSpecialResultField({
+        partyId: appUser.activePartyId,
+        adminUserId: appUser.uid,
+        field,
+        value,
+      });
+    } catch (error) {
+      console.error("Error guardando resultado final:", error);
+    } finally {
+      setIsSavingSpecialResult(false);
     }
   };
 
@@ -336,8 +376,14 @@ export default function Home() {
   const leaderboard = calculateLeaderboard(
     partyUsers,
     partyPredictions,
-    results
+    results,
+    specialPredictions,
+    specialResults
   );
+
+  const mySpecialPrediction = appUser
+    ? specialPredictions[appUser.uid] ?? null
+    : null;
 
   const selectedResult = selectedMatch
     ? results[selectedMatch.id]
@@ -459,7 +505,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50 px-5 py-8 relative">
 
-      {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty || isSavingAdmin || isSavingSpecialPrediction) &&
+      {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty
+        || isSavingAdmin || isSavingSpecialPrediction || isSavingSpecialResult) &&
         <LoadingScreen />
       }
 
@@ -625,7 +672,7 @@ export default function Home() {
             results={results}
             userId={appUser.uid}
             onGoToMatches={() => setActiveTab("matches")}
-            specialPrediction={specialPrediction}
+            specialPrediction={mySpecialPrediction}
             hasWorldCupStarted={hasWorldCupStarted}
             onSaveSpecialPredictionField={handleSaveSpecialPredictionField}
           />
@@ -681,8 +728,11 @@ export default function Home() {
             party={party}
             members={partyUsers}
             appUser={appUser}
+            specialResults={specialResults}
+            isSavingSpecialResult={isSavingSpecialResult}
             onPromoteUser={handlePromoteUser}
             onDemoteUser={handleDemoteUser}
+            onSaveSpecialResultField={handleSaveSpecialResultField}
           />
         )}
 

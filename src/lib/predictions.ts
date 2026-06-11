@@ -7,10 +7,24 @@ import {
 import { db } from "@/lib/firebase";
 import { Prediction } from "@/types/Prediction";
 
+export type SpecialPrediction = {
+    userId: string;
+    championTeamId?: string;
+    runnerUpTeamId?: string;
+    topScorerPlayerId?: string;
+    bestPlayerId?: string;
+    createdAt?: unknown;
+    updatedAt?: unknown;
+};
+
 export type PredictionsMap = {
     [userId: string]: {
         [matchId: string]: Prediction;
     };
+};
+
+export type SpecialPredictionsMap = {
+    [userId: string]: SpecialPrediction;
 };
 
 type FirestorePrediction = Prediction & {
@@ -109,36 +123,27 @@ export async function savePredictionToFirebase({
     );
 }
 
-export type SpecialPrediction = {
-    userId: string;
-    championTeamId?: string;
-    runnerUpTeamId?: string;
-    topScorerPlayerId?: string;
-    bestPlayerId?: string;
-    createdAt?: unknown;
-    updatedAt?: unknown;
-};
-
-export function subscribeToMySpecialPrediction(
+export function subscribeToPartySpecialPredictions(
     partyId: string,
-    userId: string,
-    callback: (prediction: SpecialPrediction | null) => void
+    callback: (predictions: SpecialPredictionsMap) => void
 ) {
-    const predictionRef = doc(
+    const ref = collection(
         db,
         "parties",
         partyId,
-        "specialPredictions",
-        userId
+        "specialPredictions"
     );
 
-    return onSnapshot(predictionRef, (snapshot) => {
-        if (!snapshot.exists()) {
-            callback(null);
-            return;
-        }
+    return onSnapshot(ref, (snapshot) => {
+        const predictionsMap: SpecialPredictionsMap = {};
 
-        callback(snapshot.data() as SpecialPrediction);
+        snapshot.docs.forEach((docSnap) => {
+            const data = docSnap.data() as SpecialPrediction;
+
+            predictionsMap[data.userId] = data;
+        });
+
+        callback(predictionsMap);
     });
 }
 
@@ -160,7 +165,7 @@ export async function saveSpecialPredictionField({
     hasWorldCupStarted: boolean;
 }) {
 
-    if(!partyId) return;
+    if (!partyId) return;
 
     if (hasWorldCupStarted) {
         throw new Error("Los pronósticos especiales ya están bloqueados.");
