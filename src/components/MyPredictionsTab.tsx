@@ -13,6 +13,7 @@ type Props = {
     results: ResultsMap;
     userId: string;
     onGoToMatches: () => void;
+    onSelect: (match: Match) => void;
     specialPrediction: SpecialPrediction | null;
     hasWorldCupStarted: boolean;
     onSaveSpecialPredictionField: (
@@ -26,7 +27,7 @@ export function MyPredictionsTab({
     predictions,
     results,
     userId,
-    onGoToMatches, specialPrediction, hasWorldCupStarted, onSaveSpecialPredictionField
+    onGoToMatches, specialPrediction, hasWorldCupStarted, onSaveSpecialPredictionField, onSelect
 }: Props) {
     const myPredictions = predictions[userId] ?? {};
 
@@ -121,7 +122,8 @@ export function MyPredictionsTab({
                             matches={pendingPredictions}
                             myPredictions={myPredictions}
                             results={results}
-                            mode = 'pending'
+                            mode='pending'
+                            onSelect={onSelect}
                         />
                     )}
 
@@ -131,7 +133,8 @@ export function MyPredictionsTab({
                             matches={finishedPredictions}
                             myPredictions={myPredictions}
                             results={results}
-                            mode = 'finished'
+                            mode='finished'
+                            onSelect={onSelect}
                         />
                     )}
                 </section>
@@ -161,7 +164,8 @@ function PredictionGroup({
     matches,
     myPredictions,
     results,
-    mode
+    mode,
+    onSelect
 }: {
     title: string;
     matches: Match[];
@@ -174,6 +178,7 @@ function PredictionGroup({
     >;
     results: ResultsMap;
     mode: string;
+    onSelect: (match: Match) => void;
 }) {
     return (
         <div className="space-y-3">
@@ -197,8 +202,11 @@ function PredictionGroup({
                 return (
                     <article
                         key={match.id}
-                        className={mode === "finished" ? "rounded-3xl bg-green-50 p-5 shadow-sm" :
-                                "rounded-3xl bg-pink-50 p-5 shadow-sm"}
+
+                        onClick={() => { return onSelect(match) }}
+
+                        className={mode === "finished" ? "cursor-pointer rounded-3xl bg-green-50 p-5 shadow-sm" :
+                            "cursor-pointer rounded-3xl bg-pink-50 p-5 shadow-sm"}
                     >
                         <div className="mb-4">
                             <p className="text-sm font-bold text-gray-400">

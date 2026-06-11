@@ -681,6 +681,7 @@ export default function Home() {
           <MyPredictionsTab
             matches={matches}
             predictions={predictions}
+            onSelect={setSelectedMatch}
             results={results}
             userId={appUser.uid}
             onGoToMatches={() => setActiveTab("matches")}
