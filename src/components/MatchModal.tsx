@@ -75,7 +75,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const homeTeam = match.homeTeamId ? teamsById[match.homeTeamId] : null;
     const awayTeam = match.awayTeamId ? teamsById[match.awayTeamId] : null;
 
-    const canPredict = status === "scheduled" && !prediction;
+    const canPredict = status === "scheduled";
 
     const canSavePrediction = (
         homeScore !== "" &&
@@ -502,19 +502,19 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-bold text-gray-950">Pronóstico</p>
-                                {!prediction && !isFinished && canPredict && (<p className="mt-1 text-sm text-gray-500">
+                                {/*{!prediction && !isFinished && canPredict && (<p className="mt-1 text-sm text-gray-500">
                                     Una vez guardado, no podrás cambiarlo.
-                                </p>)}
+                                </p>)}*/}
                             </div>
 
-                            {prediction && !isFinished && (
+                            {/*{prediction && !isFinished && (
                                 <span className="rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700">
                                     Bloqueado
                                 </span>
-                            )}
+                            )}*/}
                         </div>
 
-                        {prediction ? (<>
+                        {prediction && !isPredicting ? (<>
                             <div className="my-2 rounded-2xl bg-white p-4 text-center shadow-sm">
                                 <p className="text-sm text-gray-500">Tu pronóstico</p>
 
@@ -524,6 +524,24 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                         awayTeam={awayTeam}
                                         result={{ matchId: match.id, ...prediction, status: "scheduled" }}
                                     />
+                                )}
+
+                                {canPredict && !isFinished && (
+                                    <button
+                                        onClick={() => {
+                                            setHomeScore(String(prediction.homeScore));
+                                            setAwayScore(String(prediction.awayScore));
+                                            setIsPredicting(true);
+                                        }}
+                                        className="mt-4 w-full rounded-2xl bg-yellow-200 px-4 py-3 text-sm font-bold text-black transition
+                                        hover:bg-yellow-400"
+                                    >
+                                        Cambiar pronóstico
+                                    </button>
+                                )}
+
+                                {!canPredict && !isFinished && (
+                                    <span className="text-center text-sm text-red-400 font-semibold">El partido ya empezó.</span>
                                 )}
 
                                 {scoreResult && (<><div className="my-3 rounded-2xl">
@@ -582,7 +600,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             disabled={!canSavePrediction}
                                             onClick={() => {
                                                 const confirmed = window.confirm(
-                                                    "¿Confirmas tu pronóstico? Luego no podrás cambiarlo."
+                                                    "¿Confirmas tu pronóstico?"
                                                 );
 
                                                 if (!confirmed) return;

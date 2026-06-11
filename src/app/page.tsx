@@ -184,7 +184,19 @@ export default function Home() {
   ) => {
     if (!appUser?.activePartyId) return;
 
-    if (predictions[appUser.uid]?.[matchId]) return;
+    const match = matches.find((m) => m.id === matchId);
+    if (!match) return;
+
+    const currentStatus = getMatchStatus(
+      match,
+      results[matchId],
+      now
+    );
+
+    if (currentStatus !== "scheduled") {
+      alert("No se puede guardar predicción: el partido ya comenzó o terminó.");
+      return;
+    }
 
     try {
       setIsSavingPrediction(true);
