@@ -3,6 +3,7 @@ import { formatDate, formatTime } from "@/utils/format";
 import { teamsById } from "@/data/Teams";
 import { useState } from "react";
 import { WatchPartyMatch } from "@/lib/partyMatches";
+import { Badge } from "./ui/badge";
 
 
 type Props = {
@@ -33,7 +34,13 @@ export function MatchCard({ match, onSelect, status, attendanceCount, isWatchPar
             className="cursor-pointer rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md">
             <div className="mb-3 flex items-center justify-between text-sm text-gray-500">
                 <span>{formatDate(match.date)}</span>
-                <span>{formatTime(match.time)}</span>
+                {status === 'live' ?
+                    <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                        En Vivo
+                    </Badge>
+                    :
+                    <span>{formatTime(match.time)}</span>}
+
             </div>
 
             <h3 className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-lg font-bold text-gray-900">
