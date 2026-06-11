@@ -60,7 +60,7 @@ export function MyPredictionsTab({
 
         if (!prediction || !result) return false;
 
-        return calculatePredictionPoints(prediction, result).points === 3;
+        return calculatePredictionPoints(prediction, result).points === 5;
     }).length;
 
     return (

@@ -19,7 +19,7 @@ export function calculatePredictionPoints(
 
     if (exactScore) {
         return {
-            points: 3,
+            points: 5,
             reason: "exact_score",
             exactScore: true,
             correctResult: true,
@@ -28,7 +28,7 @@ export function calculatePredictionPoints(
 
     if (correctResult) {
         return {
-            points: 1,
+            points: 3,
             reason: "correct_result",
             exactScore: false,
             correctResult: true,
