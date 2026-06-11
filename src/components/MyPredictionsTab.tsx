@@ -121,6 +121,7 @@ export function MyPredictionsTab({
                             matches={pendingPredictions}
                             myPredictions={myPredictions}
                             results={results}
+                            mode = 'pending'
                         />
                     )}
 
@@ -130,6 +131,7 @@ export function MyPredictionsTab({
                             matches={finishedPredictions}
                             myPredictions={myPredictions}
                             results={results}
+                            mode = 'finished'
                         />
                     )}
                 </section>
@@ -159,6 +161,7 @@ function PredictionGroup({
     matches,
     myPredictions,
     results,
+    mode
 }: {
     title: string;
     matches: Match[];
@@ -170,6 +173,7 @@ function PredictionGroup({
         }
     >;
     results: ResultsMap;
+    mode: string;
 }) {
     return (
         <div className="space-y-3">
@@ -193,7 +197,8 @@ function PredictionGroup({
                 return (
                     <article
                         key={match.id}
-                        className="rounded-3xl bg-white p-5 shadow-sm"
+                        className={mode === "finished" ? "rounded-3xl bg-green-50 p-5 shadow-sm" :
+                                "rounded-3xl bg-pink-50 p-5 shadow-sm"}
                     >
                         <div className="mb-4">
                             <p className="text-sm font-bold text-gray-400">
@@ -205,7 +210,7 @@ function PredictionGroup({
                             </h4>
                         </div>
 
-                        <p className="mb-2 text-xs font-black uppercase tracking-wide text-gray-400">
+                        <p className="mb-2 text-xs font-black uppercase tracking-wide text-gray-600">
                             Tu pronóstico
                         </p>
 
@@ -221,8 +226,8 @@ function PredictionGroup({
                         />
 
                         {result?.status === "finished" && (
-                            <div className="mt-4 rounded-2xl bg-gray-50 p-4">
-                                <p className="text-xs font-black uppercase tracking-wide text-gray-400">
+                            <div className="mt-4 rounded-2xl bg-white p-4">
+                                <p className="text-xs font-black uppercase tracking-wide text-gray-600">
                                     Resultado final
                                 </p>
 
@@ -235,10 +240,10 @@ function PredictionGroup({
                                 </div>
 
                                 <p className="mt-3 text-sm font-black text-gray-900">
-                                    {points === 1
-                                        ? "+1 punto"
-                                        : points === 3
-                                            ? "+3 puntos"
+                                    {points === 3
+                                        ? "+3 puntos"
+                                        : points === 5
+                                            ? "+5 puntos"
                                             : "+0 puntos"}
                                 </p>
                             </div>
