@@ -47,7 +47,7 @@ export default function Home() {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("matches");
 
-  const [matchFilter, setMatchFilter] = useState<"all" | "today" | "scheduled" | "live" | "finished" | "missing_prediction">("all");
+  const [matchFilter, setMatchFilter] = useState<"all" | "today" | "scheduled" | "live" | "finished" | "missing_prediction">("scheduled");
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
