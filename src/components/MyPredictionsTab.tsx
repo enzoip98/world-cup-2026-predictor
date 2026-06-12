@@ -209,13 +209,9 @@ function PredictionGroup({
                             "cursor-pointer rounded-3xl bg-pink-50 p-5 shadow-sm"}
                     >
                         <div className="mb-4">
-                            <p className="text-sm font-bold text-gray-400">
+                            <p className="text-xs font-bold text-gray-400">
                                 {formatMatchDate(match.kickoff)}
                             </p>
-
-                            <h4 className="mt-1 text-lg font-black text-gray-900">
-                                {homeTeam.nameEs} vs {awayTeam.nameEs}
-                            </h4>
                         </div>
 
                         <p className="mb-2 text-xs font-black uppercase tracking-wide text-gray-600">
