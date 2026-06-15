@@ -21,41 +21,52 @@ export function SpecialPickCard({
         <button
             disabled={disabled}
             onClick={onClick}
-            className={`w-full rounded-3xl border p-4 text-left transition ${disabled
+            className={`min-h-37.5 rounded-3xl border p-3 text-left transition ${disabled
                 ? "border-gray-100 bg-gray-50"
-                : "border-gray-100 bg-white active:scale-[0.99]"
+                : "border-gray-100 bg-white active:scale-[0.98]"
                 }`}
         >
-            <div className="flex items-center justify-between gap-3">
-                <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-black uppercase tracking-wide text-gray-900">
-                            {emoji} {title}
+            <div className="flex h-full flex-col justify-evenly gap-3">
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-light capitalize leading-tight tracking-wide text-gray-900">
+                            <span className="mr-1">{emoji}</span>
+                            {title}
                         </p>
 
-                        <span className="rounded-full bg-green-100 px-2 py-1 text-[11px] font-black text-gray-500">
-                            +{points} pts
+                        <span className="shrink-0 rounded-full bg-green-100 text-xs px-0.5 py-0.5 text-[10px] font-black text-gray-500">
+                            +{points}
                         </span>
                     </div>
 
-                    <div className="mt-3 text-base font-black text-gray-900">
+                    <div className="text-sm font-black leading-snug text-gray-900">
                         {value ?? (
-                            <span className="text-sm text-gray-500">{emptyText}</span>
+                            <span className="text-xs font-bold text-gray-500">
+                                {emptyText}
+                            </span>
                         )}
                     </div>
                 </div>
 
-                {value ? (
-                    <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
-                        Guardado
-                    </span>
-                ) : disabled ? (
-                    <span className="shrink-0 rounded-full bg-gray-200 px-3 py-1 text-xs font-black text-gray-500">
-                        Bloqueado
-                    </span>
-                ) : (
-                    <span className="shrink-0 text-xl text-gray-300">›</span>
-                )}
+                <div className="flex items-center justify-center">
+                    {value ? (
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-black text-green-700">
+                            Guardado
+                        </span>
+                    ) : disabled ? (
+                        <span className="rounded-full bg-gray-200 px-3 py-1 text-[11px] font-black text-gray-500">
+                            Bloqueado
+                        </span>
+                    ) : (
+                        <span className="text-xs font-black text-cyan-600">
+                            Elegir
+                        </span>
+                    )}
+
+                    {!value && !disabled && (
+                        <span className="text-lg text-gray-300">›</span>
+                    )}
+                </div>
             </div>
         </button>
     );

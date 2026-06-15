@@ -181,7 +181,7 @@ function PredictionGroup({
     onSelect: (match: Match) => void;
 }) {
     return (
-        <div className="space-y-3">
+        <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 xl:grid-cols-3">
             <h3 className="px-1 text-base font-black text-gray-900">
                 {title}
             </h3>
@@ -202,40 +202,54 @@ function PredictionGroup({
                 return (
                     <article
                         key={match.id}
-
-                        onClick={() => { return onSelect(match) }}
-
-                        className={mode === "finished" ? "cursor-pointer rounded-3xl bg-green-50 p-5 shadow-sm" :
-                            "cursor-pointer rounded-3xl bg-pink-50 p-5 shadow-sm"}
+                        onClick={() => onSelect(match)}
+                        className={`cursor-pointer rounded-3xl p-4 shadow-sm ${mode === "finished" ? "bg-teal-50" : "bg-pink-50"
+                            }`}
                     >
-                        <div className="mb-4">
-                            <p className="text-xs font-bold text-gray-400">
-                                {formatMatchDate(match.kickoff)}
-                            </p>
+                        <div className="my-1 flex items-center justify-between gap-3">
+
+                            {result?.status !== "finished" &&
+                                <p className="text-xs font-bold text-gray-400">
+                                    {formatMatchDate(match.kickoff)}
+                                </p>
+                            }
+
+                            {points !== null && (
+                                <span
+                                    className={`rounded-full px-3 py-1 text-xs font-black ${points > 0
+                                        ? "bg-green-600 text-white"
+                                        : "bg-red-100 text-gray-600"
+                                        }`}
+                                >
+                                    +{points} pts
+                                </span>
+                            )}
                         </div>
 
-                        <p className="mb-2 text-xs font-black uppercase tracking-wide text-gray-600">
-                            Tu pronóstico
-                        </p>
-
-                        <ScoreResultSection
-                            homeTeam={homeTeam}
-                            awayTeam={awayTeam}
-                            result={{
-                                matchId: match.id,
-                                homeScore: prediction.homeScore,
-                                awayScore: prediction.awayScore,
-                                status: "scheduled",
-                            }}
-                        />
+                        <div className="flex flex-row items-center justify-between">
+                            <p className="w-20 shrink-0 text-[11px] font-black capitalize leading-tight tracking-wide text-gray-500">
+                                Tu pronóstico
+                            </p>
+                            <div className="w-full">
+                                <ScoreResultSection
+                                    homeTeam={homeTeam}
+                                    awayTeam={awayTeam}
+                                    result={{
+                                        matchId: match.id,
+                                        homeScore: prediction.homeScore,
+                                        awayScore: prediction.awayScore,
+                                        status: "scheduled",
+                                    }}
+                                />
+                            </div>
+                        </div>
 
                         {result?.status === "finished" && (
-                            <div className="mt-4 rounded-2xl bg-white p-4">
-                                <p className="text-xs font-black uppercase tracking-wide text-gray-600">
-                                    Resultado final
+                            <div className="flex flex-row items-center justify-between">
+                                <p className="w-20 shrink-0 text-[13px] font-bold capitalize leading-tight tracking-wide text-gray-900">
+                                    Resultado
                                 </p>
-
-                                <div className="mt-2">
+                                <div className="w-full">
                                     <ScoreResultSection
                                         homeTeam={homeTeam}
                                         awayTeam={awayTeam}
@@ -243,13 +257,6 @@ function PredictionGroup({
                                     />
                                 </div>
 
-                                <p className="mt-3 text-sm font-black text-gray-900">
-                                    {points === 3
-                                        ? "+3 puntos"
-                                        : points === 5
-                                            ? "+5 puntos"
-                                            : "+0 puntos"}
-                                </p>
                             </div>
                         )}
                     </article>

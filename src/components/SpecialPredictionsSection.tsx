@@ -25,10 +25,10 @@ function PlayerValue({ player }: { player: Player }) {
     const team = teamsByFifaCode[player.teamId];
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-2">
             {team && <CountryFlag homeTeam={team} />}
 
-            <span className="capitalize">{player.fullName.toLowerCase()}</span>
+            <span className="text-center capitalize">{player.fullName.toLowerCase()}</span>
         </div>
     );
 }
@@ -103,8 +103,8 @@ export function SpecialPredictionsSection({
                             🏆 Pronósticos especiales
                         </h3>
 
-                        <span className="rounded-full bg-cyan-600 px-3 py-1 text-center text-xs font-black text-white">
-                            50 pts más!
+                        <span className="rounded-full bg-cyan-600 px-3 py-1 text-center text-[9px] font-light text-white">
+                            Hasta 50 pts más!
                         </span>
                     </div>
 
@@ -114,7 +114,7 @@ export function SpecialPredictionsSection({
                     </p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
                     <SpecialPickCard
                         title="Campeón"
                         emoji="🏆"
@@ -122,7 +122,7 @@ export function SpecialPredictionsSection({
                         emptyText="Elige a tu campeón"
                         value={
                             championTeam && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-center gap-2">
                                     <CountryFlag homeTeam={championTeam} />
                                     <span>{championTeam.nameEs}</span>
                                 </div>
@@ -139,7 +139,7 @@ export function SpecialPredictionsSection({
                         emptyText="Elige a tu subcampeón"
                         value={
                             runnerUpTeam && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-center gap-2">
                                     <CountryFlag homeTeam={runnerUpTeam} />
                                     <span>{runnerUpTeam.nameEs}</span>
                                 </div>

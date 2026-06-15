@@ -4,6 +4,7 @@ import { teamsById } from "@/data/Teams";
 import { useState } from "react";
 import { WatchPartyMatch } from "@/lib/partyMatches";
 import { Badge } from "./ui/badge";
+import { CountryFlag } from "./CountryFlag";
 
 
 type Props = {
@@ -32,7 +33,7 @@ export function MatchCard({ match, onSelect, status, attendanceCount, isWatchPar
                 }
             }}
             className="cursor-pointer rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md">
-            <div className="mb-3 flex items-center justify-between text-sm text-gray-500">
+            <div className="mb-3 flex items-center justify-between text-sm text-gray-700 font-semibold">
                 <span>{formatDate(match.date)}</span>
                 {status === 'live' ?
                     <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
@@ -43,44 +44,52 @@ export function MatchCard({ match, onSelect, status, attendanceCount, isWatchPar
 
             </div>
 
-            <h3 className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-lg font-bold text-gray-900">
-                <div className="flex items-center justify-end gap-2 overflow-hidden">
+            <div className="grid min-h-18 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 text-lg font-bold text-gray-900">
+                <div className="flex flex-col min-w-0 items-center justify-end gap-2">
                     {homeTeam && (
                         <>
-                            <img
-                                src={`https://flagcdn.com/w40/${homeTeam.iso2.toLowerCase()}.png`}
-                                alt={homeTeam.nameEs}
-                                className="h-5 w-7 rounded-sm object-cover shadow-sm"
-                            />
-                            <span className="text-center">{homeTeam.nameEs}</span>
+                            <CountryFlag homeTeam={homeTeam} />
+
+                            <span className="min-w-0 text-center leading-tight line-clamp-2">
+                                {homeTeam.nameEs}
+                            </span>
                         </>
                     )}
                 </div>
 
-                <span className="px-2 font-medium text-gray-500">
+                <span className="shrink-0 px-2 text-base font-semibold text-gray-500">
                     VS
                 </span>
 
-                <div className="flex items-center justify-start gap-2">
+                <div className="flex flex-col min-w-0 items-center justify-start gap-2">
                     {awayTeam && (
                         <>
-                            <img
-                                src={`https://flagcdn.com/w40/${awayTeam.iso2.toLowerCase()}.png`}
-                                alt={awayTeam.nameEs}
-                                className="h-5 w-7 rounded-sm object-cover shadow-sm"
-                            />
-                            <span className="text-center">{awayTeam.nameEs}</span>
+                            <CountryFlag homeTeam={awayTeam} />
+
+                            <span className="min-w-0 text-center leading-tight line-clamp-2">
+                                {awayTeam.nameEs}
+                            </span>
                         </>
                     )}
                 </div>
-            </h3>
+            </div>
 
-            {isWatchParty && <>
-                <p className="mt-2 text-sm text-gray-500">
-                    {watchParty.houseName}
+            <div className="my-1 text-center">
+                <p className="text-sm font-medium text-gray-900 my-1">
+                    📍 {match.city}, {match.country}
                 </p>
 
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-sm">
+                <p className="text-xs text-gray-700 font-bold truncate my-1">
+                    🏟️ {match.venue}
+                </p>
+            </div>
+
+            {isWatchParty && <>
+                <p className="my-3 text-sm text-center font-semibold text-gray-800">
+                    Se verá en {watchParty.houseName}
+                </p>
+
+                <div className="my-2 flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-sm">
                     <span className="text-gray-500">Asisten</span>
                     <span className="font-bold text-gray-900">{attendanceCount}</span>
                 </div>
