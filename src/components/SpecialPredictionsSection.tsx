@@ -114,7 +114,7 @@ export function SpecialPredictionsSection({
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                     <SpecialPickCard
                         title="Campeón"
                         emoji="🏆"

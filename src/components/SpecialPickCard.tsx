@@ -21,7 +21,7 @@ export function SpecialPickCard({
         <button
             disabled={disabled}
             onClick={onClick}
-            className={`min-h-37.5 rounded-3xl border p-3 text-left transition ${disabled
+            className={`min-h-37.5 shadow-lg rounded-4xl border p-3 text-left transition ${disabled
                 ? "border-gray-100 bg-gray-50"
                 : "border-gray-100 bg-white active:scale-[0.98]"
                 }`}

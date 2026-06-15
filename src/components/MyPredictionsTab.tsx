@@ -203,7 +203,7 @@ function PredictionGroup({
                     <article
                         key={match.id}
                         onClick={() => onSelect(match)}
-                        className={`cursor-pointer rounded-3xl p-4 shadow-sm ${mode === "finished" ? "bg-teal-50" : "bg-pink-50"
+                        className={`cursor-pointer rounded-3xl p-4 shadow-lg ${mode === "finished" ? "bg-teal-50" : "bg-pink-50"
                             }`}
                     >
                         <div className="my-1 flex items-center justify-between gap-3">
@@ -227,7 +227,7 @@ function PredictionGroup({
                         </div>
 
                         <div className="flex flex-row items-center justify-between">
-                            <p className="w-20 shrink-0 text-[11px] font-black capitalize leading-tight tracking-wide text-gray-500">
+                            <p className="text-center w-20 shrink-0 text-[9px] font-light capitalize leading-tight tracking-wide text-gray-500">
                                 Tu pronóstico
                             </p>
                             <div className="w-full">
@@ -246,7 +246,7 @@ function PredictionGroup({
 
                         {result?.status === "finished" && (
                             <div className="flex flex-row items-center justify-between">
-                                <p className="w-20 shrink-0 text-[13px] font-bold capitalize leading-tight tracking-wide text-gray-900">
+                                <p className="text-center w-20 shrink-0 text-[11px] font-semibold capitalize leading-tight tracking-wide text-gray-900">
                                     Resultado
                                 </p>
                                 <div className="w-full">

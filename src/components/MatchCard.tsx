@@ -32,7 +32,7 @@ export function MatchCard({ match, onSelect, status, attendanceCount, isWatchPar
                     return null
                 }
             }}
-            className="cursor-pointer rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md">
+            className="cursor-pointer rounded-2xl bg-white p-5 shadow-lg transition hover:shadow-xl">
             <div className="mb-3 flex items-center justify-between text-sm text-gray-700 font-semibold">
                 <span>{formatDate(match.date)}</span>
                 {status === 'live' ?
