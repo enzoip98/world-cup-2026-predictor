@@ -680,7 +680,8 @@ export default function Home() {
         {activeTab === "my_predictions" && appUser && (
           <MyPredictionsTab
             matches={matches}
-            predictions={predictions}
+            predictions={partyPredictions}
+            partyUsers={partyUsers}
             onSelect={setSelectedMatch}
             results={results}
             userId={appUser.uid}
