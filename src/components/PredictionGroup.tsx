@@ -52,6 +52,10 @@ export function PredictionGroup({
 
                 if (!homeTeam || !awayTeam || !prediction) return null;
 
+                const matchStarted =
+                    result?.status === "finished" ||
+                    Date.now() >= new Date(match.kickoff).getTime();
+
                 const points =
                     result?.status === "finished"
                         ? calculatePredictionPoints(prediction, result).points
@@ -118,7 +122,7 @@ export function PredictionGroup({
                             </div>
                         )}
 
-                        {mode === "finished" && result?.status === "finished" && (
+                        {matchStarted && (
                             <Accordion
                                 className="mt-4 rounded-2xl bg-white/70 px-4"
                                 onClick={(e) => e.stopPropagation()}
@@ -150,10 +154,10 @@ export function PredictionGroup({
                                                     );
                                                 }
 
-                                                const points = calculatePredictionPoints(
-                                                    userPrediction,
-                                                    result
-                                                ).points;
+                                                const showPoints = result?.status === "finished";
+                                                const points = showPoints && result
+                                                    ? calculatePredictionPoints(userPrediction, result).points
+                                                    : null;
 
                                                 return (
                                                     <div
@@ -167,14 +171,16 @@ export function PredictionGroup({
                                                         <h1 className="mb-0 text-sm text-gray-700 font-bold">
                                                             {userPrediction.homeScore}-{userPrediction.awayScore}
                                                         </h1>
-                                                        <span
-                                                            className={`rounded-full px-3 py-1 text-xs font-black ${points > 0
-                                                                ? "bg-green-100 text-green-700"
-                                                                : "bg-red-200 text-red-500"
-                                                                }`}
-                                                        >
-                                                            +{points}
-                                                        </span>
+                                                        {points !== null && (
+                                                            <span
+                                                                className={`rounded-full px-3 py-1 text-xs font-black ${points > 0
+                                                                    ? "bg-green-100 text-green-700"
+                                                                    : "bg-red-200 text-red-500"
+                                                                    }`}
+                                                            >
+                                                                +{points}
+                                                            </span>
+                                                        )}
 
                                                     </div>
                                                 );

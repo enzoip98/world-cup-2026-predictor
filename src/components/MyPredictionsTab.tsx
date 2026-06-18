@@ -39,7 +39,7 @@ export function MyPredictionsTab({
         .filter((match) => myPredictions[match.id])
         .sort(
             (a, b) =>
-                new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()
+                new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime()
         );
 
     const pendingPredictions = predictedMatches.filter(
