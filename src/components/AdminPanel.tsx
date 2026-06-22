@@ -16,6 +16,7 @@ type Props = {
         field: SpecialResultField,
         value: string
     ) => Promise<void>;
+    onBackfillAttendanceSummaries: () => Promise<void>;
 };
 
 type AdminAction =
@@ -40,6 +41,7 @@ export function AdminPanel({
     onPromoteUser,
     onDemoteUser,
     onSaveSpecialResultField,
+    onBackfillAttendanceSummaries,
 }: Props) {
 
     const [pendingAction, setPendingAction] = useState<AdminAction>(null);
@@ -184,6 +186,23 @@ export function AdminPanel({
                             <div className="mt-4 rounded-2xl bg-gray-100 px-4 py-3 text-center text-xl font-black tracking-widest">
                                 {party.code}
                             </div>
+                        </div>
+
+                        <div className="rounded-3xl bg-white p-5 shadow-sm">
+                            <h3 className="text-lg font-black text-gray-950">
+                                🛠️ Utilidades
+                            </h3>
+
+                            <p className="mt-2 text-sm text-gray-600">
+                                Herramientas de mantenimiento de datos.
+                            </p>
+
+                            <button
+                                onClick={onBackfillAttendanceSummaries}
+                                className="mt-4 w-full rounded-2xl bg-gray-900 py-3 text-sm font-black text-white"
+                            >
+                                Regenerar resúmenes de asistencia
+                            </button>
                         </div>
 
                         {pendingAction && (

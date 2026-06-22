@@ -7,6 +7,7 @@ import {
     setDoc,
     serverTimestamp,
     where,
+    writeBatch,
 } from "firebase/firestore";
 
 import { db } from "@/lib/firebase";
@@ -54,6 +55,35 @@ export async function generateAttendanceSummary({
         },
         { merge: true }
     );
+}
+
+export async function backfillAttendanceSummaries({
+    partyId,
+}: {
+    partyId: string;
+}) {
+    const attendanceRef = collection(db, "parties", partyId, "attendance");
+    const snapshot = await getDocs(attendanceRef);
+
+    const countByMatch: Record<string, number> = {};
+
+    snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as FirestoreAttendance;
+        if (data.status === "going") {
+            countByMatch[data.matchId] = (countByMatch[data.matchId] ?? 0) + 1;
+        } else if (!(data.matchId in countByMatch)) {
+            countByMatch[data.matchId] = 0;
+        }
+    });
+
+    const batch = writeBatch(db);
+
+    Object.entries(countByMatch).forEach(([matchId, goingCount]) => {
+        const summaryRef = doc(db, "parties", partyId, "attendanceSummaries", matchId);
+        batch.set(summaryRef, { matchId, goingCount, updatedAt: serverTimestamp() }, { merge: true });
+    });
+
+    await batch.commit();
 }
 
 export function subscribeToAttendanceSummaries(

@@ -28,7 +28,7 @@ import { saveSpecialResultField, SpecialResultField, SpecialResults, subscribeTo
 import { matchesData } from "@/data/matchesData";
 import { Button } from "@base-ui/react";
 import { backfillFinishedMatchPredictionSummaries, generateMatchPredictionSummary, MatchPredictionSummary, subscribeToMatchPredictionSummaries } from "@/utils/predictionSummary";
-import { AttendanceSummaryMap, subscribeToAttendanceSummaries } from "@/utils/attendanceSummary";
+import { AttendanceSummaryMap, backfillAttendanceSummaries, subscribeToAttendanceSummaries } from "@/utils/attendanceSummary";
 
 export default function Home() {
 
@@ -202,7 +202,7 @@ export default function Home() {
     );
 
     return () => unsubscribe();
-  }, [appUser?.activePartyId, selectedMatch?.id]);
+  }, [appUser?.activePartyId, selectedMatch, selectedMatch?.id]);
 
   const handleSavePrediction = async (
     matchId: string,
@@ -441,6 +441,11 @@ export default function Home() {
     } finally {
       setIsSavingSpecialPrediction(false);
     }
+  };
+
+  const handleBackfillAttendanceSummaries = async () => {
+    if (!appUser?.activePartyId) return;
+    await backfillAttendanceSummaries({ partyId: appUser.activePartyId });
   };
 
   const leaderboard = calculateLeaderboard(
@@ -788,6 +793,7 @@ export default function Home() {
             onPromoteUser={handlePromoteUser}
             onDemoteUser={handleDemoteUser}
             onSaveSpecialResultField={handleSaveSpecialResultField}
+            onBackfillAttendanceSummaries={handleBackfillAttendanceSummaries}
           />
         )}
 
