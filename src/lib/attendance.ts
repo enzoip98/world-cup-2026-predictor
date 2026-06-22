@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AttendanceStatus } from "@/types/AttendanceStatus";
+import { generateAttendanceSummary } from "@/utils/attendanceSummary";
 
 export type MyAttendanceMap = {
     [matchId: string]: AttendanceStatus;
@@ -71,6 +72,8 @@ export async function saveAttendanceToFirebase({
         },
         { merge: true }
     );
+
+    await generateAttendanceSummary({ partyId, matchId });
 }
 
 export async function clearAttendanceFromFirebase({
@@ -87,6 +90,8 @@ export async function clearAttendanceFromFirebase({
     await deleteDoc(
         doc(db, "parties", partyId, "attendance", attendanceId)
     );
+
+    await generateAttendanceSummary({ partyId, matchId });
 }
 
 export async function deleteAttendanceByMatch(
@@ -109,4 +114,25 @@ export async function deleteAttendanceByMatch(
     });
 
     await batch.commit();
+}
+
+export function subscribeToMatchAttendance(
+    partyId: string,
+    matchId: string,
+    callback: (attendance: AttendanceByMatchMap) => void
+) {
+    const attendanceRef = collection(db, "parties", partyId, "attendance");
+    const q = query(attendanceRef, where("matchId", "==", matchId));
+
+    return onSnapshot(q, (snapshot) => {
+        const map: AttendanceByMatchMap = {};
+        map[matchId] = {};
+
+        snapshot.docs.forEach((docSnap) => {
+            const data = docSnap.data() as FirestoreAttendance;
+            map[matchId][data.userId] = data.status;
+        });
+
+        callback(map);
+    });
 }

@@ -1,1 +1,1 @@
-export type AttendanceStatus = "going" | "maybe" | "not_going";
+export type AttendanceStatus = "going" | "not_going";

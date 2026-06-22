@@ -18,7 +18,7 @@ import { JoinPartyView } from "@/components/JoinPartyView";
 import { savePredictionToFirebase, saveSpecialPredictionField, SpecialPredictionsMap, StartedMatchPredictionsMap, subscribeToMyPredictions, subscribeToPartySpecialPredictions, subscribeToStartedMatchPredictions } from "@/lib/predictions";
 import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
 import { AppUser, subscribeToUsers } from "@/lib/users";
-import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
+import { clearAttendanceFromFirebase, AttendanceByMatchMap, saveAttendanceToFirebase, subscribeToMatchAttendance } from "@/lib/attendance";
 import { Party, promoteUserToAdmin, removeUserFromAdmin, subscribeToParty } from "@/lib/parties";
 import { subscribeToWatchPartyMatches, WatchPartyMatchesMap } from "@/lib/partyMatches";
 import { AdminPanel } from "@/components/AdminPanel";
@@ -28,6 +28,7 @@ import { saveSpecialResultField, SpecialResultField, SpecialResults, subscribeTo
 import { matchesData } from "@/data/matchesData";
 import { Button } from "@base-ui/react";
 import { backfillFinishedMatchPredictionSummaries, generateMatchPredictionSummary, MatchPredictionSummary, subscribeToMatchPredictionSummaries } from "@/utils/predictionSummary";
+import { AttendanceSummaryMap, subscribeToAttendanceSummaries } from "@/utils/attendanceSummary";
 
 export default function Home() {
 
@@ -88,7 +89,8 @@ export default function Home() {
   const [isSavingResult, setIsSavingResult] = useState(false);
   const [isSavingSpecialResult, setIsSavingSpecialResult] = useState(false);
 
-  const [attendance, setAttendance] = useState<AttendanceByMatchMap>({});
+  const [attendanceSummaries, setAttendanceSummaries] = useState<AttendanceSummaryMap>({});
+  const [matchAttendance, setMatchAttendance] = useState<AttendanceByMatchMap>({});
   const [isSavingAttendance, setIsSavingAttendance] = useState(false);
 
   const [isSavingAdmin, setIsSavingAdmin] = useState(false);
@@ -182,13 +184,25 @@ export default function Home() {
   useEffect(() => {
     if (!appUser?.activePartyId) return;
 
-    const unsubscribe = subscribeToPartyAttendance(
+    const unsubscribe = subscribeToAttendanceSummaries(
       appUser.activePartyId,
-      setAttendance
+      setAttendanceSummaries
     );
 
     return () => unsubscribe();
   }, [appUser?.activePartyId]);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId || !selectedMatch) return;
+
+    const unsubscribe = subscribeToMatchAttendance(
+      appUser.activePartyId,
+      selectedMatch.id,
+      setMatchAttendance
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId, selectedMatch?.id]);
 
   const handleSavePrediction = async (
     matchId: string,
@@ -451,24 +465,18 @@ export default function Home() {
   );
 
   const selectedAttendanceStatus = selectedMatch && appUser
-    ? attendance[selectedMatch.id]?.[appUser.uid]
+    ? matchAttendance[selectedMatch.id]?.[appUser.uid]
     : undefined;
 
   const selectedAttendees = selectedMatch
     ? partyUsers.filter(
-      user => attendance[selectedMatch.id]?.[user.uid] === "going"
-    )
-    : [];
-
-  const selectedMaybeAttendees = selectedMatch
-    ? partyUsers.filter(
-      user => attendance[selectedMatch.id]?.[user.uid] === "maybe"
+      user => matchAttendance[selectedMatch.id]?.[user.uid] === "going"
     )
     : [];
 
   const selectedNotAttendees = selectedMatch
     ? partyUsers.filter(
-      user => attendance[selectedMatch.id]?.[user.uid] === "not_going"
+      user => matchAttendance[selectedMatch.id]?.[user.uid] === "not_going"
     )
     : [];
 
@@ -702,11 +710,7 @@ export default function Home() {
                           key={match.id}
                           match={match}
                           onSelect={setSelectedMatch}
-                          attendanceCount={
-                            Object.values(attendance[match.id] ?? {}).filter(
-                              (status) => status === "going"
-                            ).length
-                          }
+                          attendanceCount={attendanceSummaries[match.id]?.goingCount ?? 0}
                           status={getMatchStatus(match, results[match.id], now)}
                           isWatchParty={isWatchParty}
                           watchParty={watchParty}
@@ -746,11 +750,7 @@ export default function Home() {
                   key={match.id}
                   match={match}
                   onSelect={setSelectedMatch}
-                  attendanceCount={
-                    Object.values(attendance[match.id] ?? {}).filter(
-                      (status) => status === "going"
-                    ).length
-                  }
+                  attendanceCount={attendanceSummaries[match.id]?.goingCount ?? 0}
                   status={getMatchStatus(match, results[match.id], now)}
                   isWatchParty={true}
                   watchParty={watchPartyMatches[match.id]}
@@ -764,11 +764,7 @@ export default function Home() {
                   key={match.id}
                   match={match}
                   onSelect={setSelectedMatch}
-                  attendanceCount={
-                    Object.values(attendance[match.id] ?? {}).filter(
-                      (status) => status === "going"
-                    ).length
-                  }
+                  attendanceCount={attendanceSummaries[match.id]?.goingCount ?? 0}
                   status={getMatchStatus(match, results[match.id], now)}
                   isWatchParty={true}
                   watchParty={watchPartyMatches[match.id]}
@@ -801,7 +797,6 @@ export default function Home() {
         match={selectedMatch}
         attendanceStatus={selectedAttendanceStatus}
         attendees={selectedAttendees}
-        maybeAttendees={selectedMaybeAttendees}
         notAttendees={selectedNotAttendees}
         onSavePrediction={handleSavePrediction}
         onSaveResult={handleSaveResult}

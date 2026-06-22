@@ -20,13 +20,11 @@ export function EditableAttendanceSelector({
 
     const attendanceOptions: AttendanceOption[] = [
         { value: "going", label: "Voy", emoji: "✅" },
-        { value: "maybe", label: "Tal vez", emoji: "🤔" },
         { value: "not_going", label: "No iré", emoji: "❌" },
     ];
 
     const selectedStyles: Record<AttendanceStatus, string> = {
         going: "bg-green-600 text-white shadow-sm",
-        maybe: "bg-yellow-500 text-white shadow-sm",
         not_going: "bg-red-600 text-white shadow-sm",
     };
 
@@ -42,7 +40,7 @@ export function EditableAttendanceSelector({
                 </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 rounded-2xl bg-gray-100 p-1">
+            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-gray-100 p-1">
                 {attendanceOptions.map((option) => {
                     const isSelected = attendanceStatus === option.value;
 
