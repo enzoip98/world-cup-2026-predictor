@@ -14,6 +14,7 @@ import { ScoreResultSection } from "./ScoreResultSection";
 import { useEffect, useState } from "react";
 import { getMatchStatus } from "@/utils/matchstatus";
 import { MatchPredictionSummary } from "@/utils/predictionSummary";
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 
 
 export function PredictionGroup({
@@ -175,11 +176,21 @@ export function PredictionGroup({
                                                             key={user.uid}
                                                             className="flex items-center justify-between rounded-2xl bg-gray-50 px-3 py-1 text-sm"
                                                         >
-                                                            <h1 className="mb-0 w-1/3 truncate font-semibold text-gray-800 text-[11px]">
-                                                                {"userName" in userPrediction
-                                                                    ? userPrediction.userName
-                                                                    : user.name}
-                                                            </h1>
+                                                            <div className="mb-0 w-1/3 flex items-center gap-3">
+                                                                <Avatar>
+                                                                    <AvatarImage
+                                                                        src={user.avatarUrl ?? user.photoURL ?? undefined}
+                                                                        referrerPolicy="no-referrer"
+                                                                    />
+                                                                    <AvatarFallback>
+                                                                        {user.name.charAt(0).toUpperCase()}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+
+                                                                <span className="truncate font-semibold text-gray-800 text-[11px]">
+                                                                    {"userName" in userPrediction ? userPrediction.userName : user.name}
+                                                                </span>
+                                                            </div>
 
                                                             <h1 className="mb-0 text-sm text-gray-700 font-bold">
                                                                 {userPrediction.homeScore}-{userPrediction.awayScore}
