@@ -1,18 +1,11 @@
 import { AppUser } from "@/lib/users";
-import { calculatePredictionPoints, calculateSpecialPredictionPoints } from "./scoring";
-import { MatchResult } from "@/types/MatchResult";
-import { Prediction } from "@/types/Prediction";
-import { SpecialPrediction, SpecialPredictionsMap } from "@/lib/predictions";
+import { calculateSpecialPredictionPoints } from "./scoring";
+import { SpecialPredictionsMap } from "@/lib/predictions";
 import { SpecialResults } from "@/lib/specialResults";
+import { MatchPredictionSummary } from "./predictionSummary";
 
-type ResultsMap = {
-    [matchId: string]: MatchResult;
-};
-
-type PredictionsMap = {
-    [userId: string]: {
-        [matchId: string]: Prediction;
-    };
+type MatchPredictionSummariesMap = {
+    [matchId: string]: MatchPredictionSummary;
 };
 
 export type LeaderboardRow = {
@@ -29,13 +22,11 @@ export type LeaderboardRow = {
 
 export function calculateLeaderboard(
     users: AppUser[],
-    predictions: PredictionsMap,
-    results: ResultsMap,
+    matchPredictionSummaries: MatchPredictionSummariesMap,
     specialPredictions: SpecialPredictionsMap,
     specialResults: SpecialResults | null
 ): LeaderboardRow[] {
-    const leaderboard = users.map(user => {
-        const userPredictions = predictions[user.uid] ?? {};
+    const leaderboard = users.map((user) => {
         const userSpecialPrediction = specialPredictions[user.uid] ?? null;
 
         let matchPoints = 0;
@@ -44,22 +35,18 @@ export function calculateLeaderboard(
         let failed = 0;
         let predictionsMade = 0;
 
-        Object.entries(userPredictions).forEach(([matchId, prediction]) => {
+        Object.values(matchPredictionSummaries).forEach((summary) => {
+            const prediction = summary.predictions.find(
+                (p) => p.userId === user.uid
+            );
+
+            if (!prediction) return;
 
             predictionsMade++;
+            matchPoints += prediction.points;
 
-            const result = results[matchId];
-
-            if (!result || result.status !== "finished") {
-                return;
-            }
-
-            const score = calculatePredictionPoints(prediction, result);
-
-            matchPoints += score.points;
-
-            if (score.exactScore) exactScores++;
-            else if (score.correctResult) correctResults++;
+            if (prediction.points === 5) exactScores++;
+            else if (prediction.points === 3) correctResults++;
             else failed++;
         });
 
@@ -72,7 +59,7 @@ export function calculateLeaderboard(
             userId: user.uid,
             name: user.name.split(" ")[0],
             avatarUrl: user.avatarUrl ?? undefined,
-            points: (matchPoints + specialPoints),
+            points: matchPoints + specialPoints,
             matchPoints,
             specialPoints,
             exactScores,

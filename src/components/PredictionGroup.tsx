@@ -5,7 +5,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { teamsByFifaCode, teamsById } from "@/data/Teams";
-import { PredictionsMap } from "@/lib/predictions";
+import { PredictionsMap, StartedMatchPredictionsMap } from "@/lib/predictions";
 import { ResultsMap } from "@/lib/results";
 import { AppUser } from "@/lib/users";
 import { Match } from "@/types/Match";
@@ -13,6 +13,7 @@ import { calculatePredictionPoints } from "@/utils/scoring";
 import { ScoreResultSection } from "./ScoreResultSection";
 import { useEffect, useState } from "react";
 import { getMatchStatus } from "@/utils/matchstatus";
+import { MatchPredictionSummary } from "@/utils/predictionSummary";
 
 
 export function PredictionGroup({
@@ -21,13 +22,13 @@ export function PredictionGroup({
     myPredictions,
     results,
     mode,
-    predictions,
+    matchPredictionSummaries,
     partyUsers,
-    onSelect, now
+    onSelect, now, startedMatchPredictions
 }: {
     title: string;
     matches: Match[];
-    predictions: PredictionsMap;
+    matchPredictionSummaries: Record<string, MatchPredictionSummary>;
     partyUsers: AppUser[];
     myPredictions: Record<
         string,
@@ -37,6 +38,7 @@ export function PredictionGroup({
         }
     >;
     results: ResultsMap;
+    startedMatchPredictions: StartedMatchPredictionsMap;
     mode: string;
     onSelect: (match: Match) => void;
     now: number;
@@ -136,57 +138,67 @@ export function PredictionGroup({
 
                                     <AccordionContent className="py-0.5">
                                         <div className="space-y-2">
-                                            {partyUsers.map((user) => {
-                                                const userPrediction = predictions[user.uid]?.[match.id];
+                                            {(() => {
+                                                const isFinished = result?.status === "finished";
 
-                                                if (!userPrediction) {
+                                                const predictionsToShow = isFinished
+                                                    ? matchPredictionSummaries[match.id]?.predictions ?? []
+                                                    : startedMatchPredictions[match.id] ?? [];
+
+                                                if (predictionsToShow.length === 0) {
                                                     return (
-                                                        <div
-                                                            key={user.uid}
-                                                            className=""
-                                                        >
-                                                            {/*<span className="font-bold text-gray-800 text-[8px]">
-                                                                {user.name}
-                                                            </span>
-
-                                                            <span className="text-gray-400">
-                                                                Sin pronóstico
-                                                            </span>*/}
-                                                        </div>
+                                                        <p className="py-2 text-center text-xs font-semibold text-gray-400">
+                                                            Todavía no hay pronósticos para mostrar.
+                                                        </p>
                                                     );
                                                 }
 
-                                                const showPoints = result?.status === "finished";
-                                                const points = showPoints && result
-                                                    ? calculatePredictionPoints(userPrediction, result).points
-                                                    : null;
-
-                                                return (
-                                                    <div
-                                                        key={user.uid}
-                                                        className="flex items-center justify-between rounded-2xl bg-gray-50 px-3 py-1 text-sm"
-                                                    >
-
-                                                        <h1 className="mb-0 w-1/3 truncate font-semibold text-gray-800 text-[11px]">
-                                                            {user.name}
-                                                        </h1>
-                                                        <h1 className="mb-0 text-sm text-gray-700 font-bold">
-                                                            {userPrediction.homeScore}-{userPrediction.awayScore}
-                                                        </h1>
-                                                        {points !== null && (
-                                                            <span
-                                                                className={`rounded-full px-3 py-1 text-xs font-black ${points > 0
-                                                                    ? "bg-green-100 text-green-700"
-                                                                    : "bg-red-200 text-red-500"
-                                                                    }`}
-                                                            >
-                                                                +{points}
-                                                            </span>
-                                                        )}
-
-                                                    </div>
+                                                const predictionsByUserId = Object.fromEntries(
+                                                    predictionsToShow.map((prediction) => [
+                                                        prediction.userId,
+                                                        prediction,
+                                                    ])
                                                 );
-                                            })}
+
+                                                return partyUsers.map((user) => {
+                                                    const userPrediction = predictionsByUserId[user.uid];
+
+                                                    if (!userPrediction) return null;
+
+                                                    const points =
+                                                        isFinished && "points" in userPrediction
+                                                            ? userPrediction.points
+                                                            : null;
+
+                                                    return (
+                                                        <div
+                                                            key={user.uid}
+                                                            className="flex items-center justify-between rounded-2xl bg-gray-50 px-3 py-1 text-sm"
+                                                        >
+                                                            <h1 className="mb-0 w-1/3 truncate font-semibold text-gray-800 text-[11px]">
+                                                                {"userName" in userPrediction
+                                                                    ? userPrediction.userName
+                                                                    : user.name}
+                                                            </h1>
+
+                                                            <h1 className="mb-0 text-sm text-gray-700 font-bold">
+                                                                {userPrediction.homeScore}-{userPrediction.awayScore}
+                                                            </h1>
+
+                                                            {points !== null && (
+                                                                <span
+                                                                    className={`rounded-full px-3 py-1 text-xs font-black ${points > 0
+                                                                            ? "bg-green-100 text-green-700"
+                                                                            : "bg-red-200 text-red-500"
+                                                                        }`}
+                                                                >
+                                                                    +{points}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     </AccordionContent>
                                 </AccordionItem>

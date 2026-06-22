@@ -6,6 +6,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Prediction } from "@/types/Prediction";
+import { Match } from "@/types/Match";
+import { ResultsMap } from "./results";
 
 export type SpecialPrediction = {
     userId: string;
@@ -23,6 +25,18 @@ export type PredictionsMap = {
     };
 };
 
+
+
+export type MatchPredictionsMap = Record<
+    string,
+    {
+        userId: string;
+        matchId: string;
+        homeScore: number;
+        awayScore: number;
+    }[]
+>;
+
 export type SpecialPredictionsMap = {
     [userId: string]: SpecialPrediction;
 };
@@ -35,24 +49,19 @@ type FirestorePrediction = Prediction & {
 export function subscribeToMyPredictions(
     partyId: string,
     userId: string,
-    callback: (predictions: PredictionsMap) => void
+    callback: (predictions: Record<string, Prediction>) => void
 ) {
     const predictionsRef = collection(db, "parties", partyId, "predictions");
 
-    const q = query(
-        predictionsRef,
-        where("userId", "==", userId)
-    );
+    const q = query(predictionsRef, where("userId", "==", userId));
 
     return onSnapshot(q, (snapshot) => {
-        const predictionsMap: PredictionsMap = {
-            [userId]: {},
-        };
+        const predictionsMap: Record<string, Prediction> = {};
 
         snapshot.docs.forEach((docSnap) => {
             const data = docSnap.data() as FirestorePrediction;
 
-            predictionsMap[userId][data.matchId] = {
+            predictionsMap[data.matchId] = {
                 homeScore: data.homeScore,
                 awayScore: data.awayScore,
             };
@@ -189,4 +198,76 @@ export async function saveSpecialPredictionField({
         },
         { merge: true }
     );
+}
+
+export type MatchStartedPrediction = {
+    userId: string;
+    matchId: string;
+    homeScore: number;
+    awayScore: number;
+};
+
+export type StartedMatchPredictionsMap = Record<
+    string,
+    MatchStartedPrediction[]
+>;
+
+export function subscribeToStartedMatchPredictions(
+    partyId: string,
+    matchIds: string[],
+    callback: (predictions: StartedMatchPredictionsMap) => void
+) {
+    if (matchIds.length === 0) {
+        queueMicrotask(() => callback({}));
+        return () => { };
+    }
+
+    const predictionsByMatch: StartedMatchPredictionsMap = {};
+
+    const predictionsRef = collection(db, "parties", partyId, "predictions");
+
+    const unsubscribes = matchIds.map((matchId) => {
+        const q = query(predictionsRef, where("matchId", "==", matchId));
+
+        return onSnapshot(q, (snapshot) => {
+            predictionsByMatch[matchId] = snapshot.docs.map((docSnap) => {
+                const data = docSnap.data() as FirestorePrediction;
+
+                return {
+                    userId: data.userId,
+                    matchId: data.matchId,
+                    homeScore: data.homeScore,
+                    awayScore: data.awayScore,
+                };
+            });
+
+            callback({ ...predictionsByMatch });
+        });
+    });
+
+    return () => {
+        unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
+}
+
+export function getStartedNotFinishedMatchIdsKey({
+    matches,
+    results,
+    now,
+}: {
+    matches: Match[];
+    results: ResultsMap;
+    now: number;
+}) {
+    return matches
+        .filter((match) => {
+            const result = results[match.id];
+
+            if (result?.status === "finished") return false;
+
+            return now >= new Date(match.kickoff).getTime();
+        })
+        .map((match) => match.id)
+        .sort()
+        .join("|");
 }

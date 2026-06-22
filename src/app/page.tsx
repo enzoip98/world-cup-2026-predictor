@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MatchCard } from "@/components/MatchCard";
 import { MatchCalendar } from "@/components/MatchCalendar";
 import { MatchModal } from "@/components/MatchModal";
@@ -14,13 +14,8 @@ import { AuthView } from "@/components/AuthView";
 import { logout } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { getMatchesFromFirebase } from "@/lib/matches";
 import { JoinPartyView } from "@/components/JoinPartyView";
-import {
-  PredictionsMap, savePredictionToFirebase, saveSpecialPredictionField,
-  SpecialPrediction,
-  SpecialPredictionsMap, subscribeToMyPredictions, subscribeToPartyPredictions, subscribeToPartySpecialPredictions
-} from "@/lib/predictions";
+import { savePredictionToFirebase, saveSpecialPredictionField, SpecialPredictionsMap, StartedMatchPredictionsMap, subscribeToMyPredictions, subscribeToPartySpecialPredictions, subscribeToStartedMatchPredictions } from "@/lib/predictions";
 import { ResultsMap, saveResultToFirebase, subscribeToResults } from "@/lib/results";
 import { AppUser, subscribeToUsers } from "@/lib/users";
 import { AttendanceByMatchMap, clearAttendanceFromFirebase, saveAttendanceToFirebase, subscribeToPartyAttendance } from "@/lib/attendance";
@@ -31,6 +26,8 @@ import { formatPeruDate, getPeruDateKey } from "@/utils/format";
 import { MyPredictionsTab } from "@/components/MyPredictionsTab";
 import { saveSpecialResultField, SpecialResultField, SpecialResults, subscribeToSpecialResults } from "@/lib/specialResults";
 import { matchesData } from "@/data/matchesData";
+import { Button } from "@base-ui/react";
+import { backfillFinishedMatchPredictionSummaries, generateMatchPredictionSummary, MatchPredictionSummary, subscribeToMatchPredictionSummaries } from "@/utils/predictionSummary";
 
 export default function Home() {
 
@@ -78,8 +75,10 @@ export default function Home() {
   const [watchPartyMatches, setWatchPartyMatches] = useState<WatchPartyMatchesMap>({});
   const [isSavingWatchParty, setIsSavingWatchParty] = useState(false);
 
-  const [predictions, setPredictions] = useState<PredictionsMap>({});
-  const [partyPredictions, setPartyPredictions] = useState<PredictionsMap>({});
+  const [myPredictions, setMyPredictions] = useState<Record<string, Prediction>>({});
+  //const [partyPredictions, setPartyPredictions] = useState<PredictionsMap>({});
+  const [startedMatchPredictions, setStartedMatchPredictions] = useState<StartedMatchPredictionsMap>({});
+  const [matchPredictionSummaries, setMatchPredictionSummaries] = useState<Record<string, MatchPredictionSummary>>({});
   const [isSavingPrediction, setIsSavingPrediction] = useState(false);
   const [specialPredictions, setSpecialPredictions] = useState<SpecialPredictionsMap>({});
   const [specialResults, setSpecialResults] = useState<SpecialResults | null>(null);
@@ -109,23 +108,34 @@ export default function Home() {
   }, [appUser?.activePartyId]);
 
   useEffect(() => {
-    if (!appUser?.activePartyId) return;
+    if (!appUser?.activePartyId || !appUser.uid) return;
 
     const unsubscribe = subscribeToMyPredictions(
       appUser.activePartyId,
       appUser.uid,
-      setPredictions
+      setMyPredictions
     );
 
     return () => unsubscribe();
   }, [appUser?.activePartyId, appUser?.uid]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (!appUser?.activePartyId) return;
 
     const unsubscribe = subscribeToPartyPredictions(
       appUser.activePartyId,
       setPartyPredictions
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId]);*/
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    const unsubscribe = subscribeToMatchPredictionSummaries(
+      appUser.activePartyId,
+      setMatchPredictionSummaries
     );
 
     return () => unsubscribe();
@@ -248,6 +258,14 @@ export default function Home() {
     if (!appUser) return;
     if (!isAdmin) return;
 
+    const finishedResult = {
+      matchId,
+      homeScore: result.homeScore,
+      awayScore: result.awayScore,
+      status: "finished" as const,
+      updatedBy: appUser.uid,
+    };
+
     try {
       setIsSavingResult(true);
 
@@ -257,6 +275,14 @@ export default function Home() {
         awayScore: result.awayScore,
         updatedBy: appUser.uid,
       });
+
+      await generateMatchPredictionSummary({
+        partyId: appUser.activePartyId!,
+        matchId,
+        result: finishedResult,
+        partyUsers,
+      });
+
     } catch (error) {
       console.error("Error guardando resultado:", error);
     } finally {
@@ -346,6 +372,36 @@ export default function Home() {
     return new Date(match.kickoff).getTime() <= now;
   });
 
+  const startedNotFinishedMatchIdsKey = useMemo(() => {
+    return matches
+      .filter((match) => {
+        const result = results[match.id];
+
+        if (result?.status === "finished") return false;
+
+        return now >= new Date(match.kickoff).getTime();
+      })
+      .map((match) => match.id)
+      .sort()
+      .join("|");
+  }, [matches, results, now]);
+
+  useEffect(() => {
+    if (!appUser?.activePartyId) return;
+
+    const matchIds = startedNotFinishedMatchIdsKey
+      ? startedNotFinishedMatchIdsKey.split("|")
+      : [];
+
+    const unsubscribe = subscribeToStartedMatchPredictions(
+      appUser.activePartyId,
+      matchIds,
+      setStartedMatchPredictions
+    );
+
+    return () => unsubscribe();
+  }, [appUser?.activePartyId, startedNotFinishedMatchIdsKey]);
+
   const handleSaveSpecialPredictionField = async (
     field:
       | "championTeamId"
@@ -375,8 +431,7 @@ export default function Home() {
 
   const leaderboard = calculateLeaderboard(
     partyUsers,
-    partyPredictions,
-    results,
+    matchPredictionSummaries,
     specialPredictions,
     specialResults
   );
@@ -448,7 +503,7 @@ export default function Home() {
   const filteredMatches = matches.filter((match) => {
     const result = results[match.id];
     const status = getMatchStatus(match, result, now);
-    const prediction = predictions[appUser.uid]?.[match.id];
+    const prediction = myPredictions?.[match.id];
 
     if (matchFilter === "today") {
       const today = new Date();
@@ -668,11 +723,12 @@ export default function Home() {
         {activeTab === "my_predictions" && appUser && (
           <MyPredictionsTab
             matches={matches}
-            predictions={partyPredictions}
+            myPredictions={myPredictions}
+            matchPredictionSummaries={matchPredictionSummaries}
+            startedMatchPredictions={startedMatchPredictions}
             partyUsers={partyUsers}
             onSelect={setSelectedMatch}
             results={results}
-            userId={appUser.uid}
             onGoToMatches={() => setActiveTab("matches")}
             specialPrediction={mySpecialPrediction}
             hasWorldCupStarted={hasWorldCupStarted}
@@ -750,7 +806,7 @@ export default function Home() {
         onSavePrediction={handleSavePrediction}
         onSaveResult={handleSaveResult}
         resultMatch={selectedMatch ? results[selectedMatch.id] : undefined}
-        prediction={selectedMatch ? predictions[appUser.uid]?.[selectedMatch.id] : undefined}
+        prediction={selectedMatch ? myPredictions?.[selectedMatch.id] : undefined}
         onAttendanceChange={handleAttendanceChange}
         onClearAttendance={clearAttendance}
         onClose={() => setSelectedMatch(null)}

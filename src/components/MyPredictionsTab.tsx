@@ -1,5 +1,5 @@
 // components/MyPredictionsTab.tsx
-import { PredictionsMap, SpecialPrediction } from "@/lib/predictions";
+import { PredictionsMap, SpecialPrediction, StartedMatchPredictionsMap } from "@/lib/predictions";
 import { ScoreResultSection } from "@/components/ScoreResultSection";
 import { Match } from "@/types/Match";
 import { ResultsMap } from "@/lib/results";
@@ -8,33 +8,40 @@ import { teamsById } from "@/data/Teams";
 import { SpecialPredictionsSection } from "./SpecialPredictionsSection";
 import { AppUser } from "@/lib/users";
 import { PredictionGroup } from "./PredictionGroup";
+import { MatchPredictionSummary } from "@/utils/predictionSummary";
+import { Prediction } from "@/types/Prediction";
 
 type Props = {
     matches: Match[];
-    predictions: PredictionsMap;
-    results: ResultsMap;
-    userId: string;
+    myPredictions: Record<string, Prediction>;
+    matchPredictionSummaries: Record<string, MatchPredictionSummary>;
+    startedMatchPredictions: StartedMatchPredictionsMap;
     partyUsers: AppUser[];
-    onGoToMatches: () => void;
+    results: ResultsMap;
     onSelect: (match: Match) => void;
+    onGoToMatches: () => void;
     specialPrediction: SpecialPrediction | null;
     hasWorldCupStarted: boolean;
     onSaveSpecialPredictionField: (
         field: "championTeamId" | "runnerUpTeamId" | "topScorerPlayerId" | "bestPlayerId",
         value: string
     ) => Promise<void>;
-    now: number;
+    now: number
 };
 
 export function MyPredictionsTab({
     matches,
-    predictions,
+    myPredictions,
     partyUsers,
     results,
-    userId,
-    onGoToMatches, specialPrediction, hasWorldCupStarted, onSaveSpecialPredictionField, onSelect, now
+    onGoToMatches,
+    specialPrediction,
+    hasWorldCupStarted,
+    onSaveSpecialPredictionField,
+    onSelect,
+    now,
+    matchPredictionSummaries, startedMatchPredictions
 }: Props) {
-    const myPredictions = predictions[userId] ?? {};
 
     const predictedMatches = matches
         .filter((match) => myPredictions[match.id])
@@ -126,7 +133,8 @@ export function MyPredictionsTab({
                             title="🟡 Pendientes"
                             matches={pendingPredictions}
                             myPredictions={myPredictions}
-                            predictions={predictions}
+                            matchPredictionSummaries={matchPredictionSummaries}
+                            startedMatchPredictions={startedMatchPredictions}
                             partyUsers={partyUsers}
                             results={results}
                             mode='pending'
@@ -141,7 +149,8 @@ export function MyPredictionsTab({
                             title="🟢 Finalizados"
                             matches={finishedPredictions}
                             myPredictions={myPredictions}
-                            predictions={predictions}
+                            matchPredictionSummaries={matchPredictionSummaries}
+                            startedMatchPredictions={startedMatchPredictions}
                             results={results}
                             partyUsers={partyUsers}
                             mode="finished"
