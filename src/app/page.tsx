@@ -30,6 +30,7 @@ import { AdminPanel } from "@/components/AdminPanel";
 import { formatPeruDate, getPeruDateKey } from "@/utils/format";
 import { MyPredictionsTab } from "@/components/MyPredictionsTab";
 import { saveSpecialResultField, SpecialResultField, SpecialResults, subscribeToSpecialResults } from "@/lib/specialResults";
+import { matchesData } from "@/data/matchesData";
 
 export default function Home() {
 
@@ -50,7 +51,8 @@ export default function Home() {
   const [matchFilter, setMatchFilter] = useState<"all" | "today" | "scheduled" | "live" | "finished" | "missing_prediction">("scheduled");
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [matches, setMatches] = useState<Match[]>([]);
+
+  const matches = matchesData;
 
   const { appUser, loadingAuth, isAdmin } = useAuth();
 
@@ -267,24 +269,10 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(Date.now());
-    }, 20000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    async function loadMatches() {
-      const firebaseMatches = await getMatchesFromFirebase();
-      if (firebaseMatches.length === 0) {
-        setMatches([]);
-        return;
-      }
-      setMatches(firebaseMatches);
-    }
-
-    loadMatches();
-  }, []);
-
 
   const handleAttendanceChange = async (
     matchId: string,
@@ -689,6 +677,7 @@ export default function Home() {
             specialPrediction={mySpecialPrediction}
             hasWorldCupStarted={hasWorldCupStarted}
             onSaveSpecialPredictionField={handleSaveSpecialPredictionField}
+            now={now}
           />
         )}
 

@@ -1,6 +1,6 @@
 import { Match } from "@/types/Match";
 import { formatDate, formatTime } from "@/utils/format";
-import { teamsById } from "@/data/Teams";
+import { teamsByFifaCode, teamsById } from "@/data/Teams";
 import { useState } from "react";
 import { WatchPartyMatch } from "@/lib/partyMatches";
 import { Badge } from "./ui/badge";
@@ -18,8 +18,8 @@ type Props = {
 
 export function MatchCard({ match, onSelect, status, attendanceCount, isWatchParty, watchParty }: Props) {
 
-    const homeTeam = match.homeTeamId ? teamsById[match.homeTeamId] : null;
-    const awayTeam = match.awayTeamId ? teamsById[match.awayTeamId] : null;
+    const homeTeam = match.homeTeamId ? teamsByFifaCode[match.homeTeamId] : null;
+    const awayTeam = match.awayTeamId ? teamsByFifaCode[match.awayTeamId] : null;
 
 
     return (

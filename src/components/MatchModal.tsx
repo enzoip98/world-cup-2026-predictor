@@ -1,7 +1,7 @@
 import { AttendanceStatus } from "@/types/AttendanceStatus";
 import { Match } from "@/types/Match";
 import { formatDate, formatTime } from "@/utils/format";
-import { teamsById } from "@/data/Teams";
+import { teamsByFifaCode, teamsById } from "@/data/Teams";
 import { Prediction } from "@/types/Prediction";
 import { useState } from "react";
 import { calculatePredictionPoints } from "@/utils/scoring";
@@ -72,8 +72,8 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const isFinished = resultMatch?.status === "finished";
     const scoreResult = prediction && isFinished ? calculatePredictionPoints(prediction, resultMatch) : null;
 
-    const homeTeam = match.homeTeamId ? teamsById[match.homeTeamId] : null;
-    const awayTeam = match.awayTeamId ? teamsById[match.awayTeamId] : null;
+    const homeTeam = match.homeTeamId ? teamsByFifaCode[match.homeTeamId] : null;
+    const awayTeam = match.awayTeamId ? teamsByFifaCode[match.awayTeamId] : null;
 
     const canPredict = status === "scheduled";
 
