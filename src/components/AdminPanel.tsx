@@ -188,7 +188,7 @@ export function AdminPanel({
                             </div>
                         </div>
 
-                        <div className="rounded-3xl bg-white p-5 shadow-sm">
+                        {/*<div className="rounded-3xl bg-white p-5 shadow-sm">
                             <h3 className="text-lg font-black text-gray-950">
                                 🛠️ Utilidades
                             </h3>
@@ -203,7 +203,7 @@ export function AdminPanel({
                             >
                                 Regenerar resúmenes de asistencia
                             </button>
-                        </div>
+                        </div>*/}
 
                         {pendingAction && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5">
