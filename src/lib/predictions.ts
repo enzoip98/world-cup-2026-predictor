@@ -71,32 +71,6 @@ export function subscribeToMyPredictions(
     });
 }
 
-export function subscribeToPartyPredictions(
-    partyId: string,
-    callback: (predictions: PredictionsMap) => void
-) {
-    const predictionsRef = collection(db, "parties", partyId, "predictions");
-
-    return onSnapshot(predictionsRef, (snapshot) => {
-        const predictionsMap: PredictionsMap = {};
-
-        snapshot.docs.forEach((docSnap) => {
-            const data = docSnap.data() as FirestorePrediction;
-
-            if (!predictionsMap[data.userId]) {
-                predictionsMap[data.userId] = {};
-            }
-
-            predictionsMap[data.userId][data.matchId] = {
-                homeScore: data.homeScore,
-                awayScore: data.awayScore,
-            };
-        });
-
-        callback(predictionsMap);
-    });
-}
-
 export async function savePredictionToFirebase({
     partyId,
     userId,
