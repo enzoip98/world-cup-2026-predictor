@@ -503,7 +503,8 @@ export default function Home() {
     partyUsers,
     matchPredictionSummaries,
     specialPredictions,
-    specialResults
+    specialResults,
+    matches
   );
 
   const mySpecialPrediction = appUser
