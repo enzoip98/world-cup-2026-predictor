@@ -73,7 +73,7 @@ export async function generateMatchPredictionSummary({
         const prediction = docSnap.data() as StoredPrediction;
         const user = usersById[prediction.userId];
 
-        return {
+        const base = {
             userId: prediction.userId,
             userName: user?.name ?? "Usuario",
             photoURL: user?.photoURL ?? "",
@@ -81,9 +81,14 @@ export async function generateMatchPredictionSummary({
             awayScore: prediction.awayScore,
             points: calculatePredictionPoints(prediction, result).points,
             jokerActivated: prediction.jokerActivated ?? false,
-            qualifiedTeamId: prediction.qualifiedTeamId,
-            penaltiesIfDraw: prediction.penaltiesIfDraw,
         };
+        return Object.fromEntries(
+            Object.entries({
+                ...base,
+                qualifiedTeamId: prediction.qualifiedTeamId,
+                penaltiesIfDraw: prediction.penaltiesIfDraw,
+            }).filter(([, v]) => v !== undefined)
+        );
     });
 
     // Firestore rejects undefined values — strip them before saving
