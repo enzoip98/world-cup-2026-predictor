@@ -26,7 +26,8 @@ type Props = {
         field: "championTeamId" | "runnerUpTeamId" | "topScorerPlayerId" | "bestPlayerId",
         value: string
     ) => Promise<void>;
-    now: number
+    now: number;
+    currentUserId: string;
 };
 
 export function MyPredictionsTab({
@@ -40,7 +41,9 @@ export function MyPredictionsTab({
     onSaveSpecialPredictionField,
     onSelect,
     now,
-    matchPredictionSummaries, startedMatchPredictions
+    matchPredictionSummaries,
+    startedMatchPredictions,
+    currentUserId,
 }: Props) {
 
     const predictedMatches = matches
@@ -140,6 +143,7 @@ export function MyPredictionsTab({
                             mode='pending'
                             onSelect={onSelect}
                             now={now}
+                            currentUserId={currentUserId}
                         />
                     )}
 
@@ -156,6 +160,7 @@ export function MyPredictionsTab({
                             mode="finished"
                             onSelect={onSelect}
                             now={now}
+                            currentUserId={currentUserId}
                         />
                     )}
                 </section>

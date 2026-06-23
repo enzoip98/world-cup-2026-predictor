@@ -34,6 +34,7 @@ type Props = {
     }) => void;
     onSaveWindowModification: (matchId: string, qualifiedTeamId: string, penaltiesIfDraw: boolean) => void;
     onCloseModificationWindow: (matchId: string) => void;
+    jokersUsed: number;
     status: MatchStatus;
     attendees: AppUser[];
     notAttendees: AppUser[];
@@ -58,7 +59,7 @@ const finishedAttendanceOptions: AttendanceOption[] = [
 export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance, onAttendanceChange,
     onSavePrediction, prediction, onSaveResult, resultMatch, status, attendees, notAttendees,
     appUser, isWatchParty, watchParty, members, onSavingWatchPartyChange,
-    onSaveWindowModification, onCloseModificationWindow }: Props) {
+    onSaveWindowModification, onCloseModificationWindow, jokersUsed }: Props) {
 
     const [isPredicting, setIsPredicting] = useState(false);
     const [isSavingResult, setIsSavingResult] = useState(false);
@@ -70,6 +71,9 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const [selectedHostUserId, setSelectedHostUserId] = useState(watchParty?.hostUserId ?? "");
     const [isSavingWatchParty, setIsSavingWatchParty] = useState(false);
     const [isEditingWatchParty, setIsEditingWatchParty] = useState(false);
+
+    // Joker state — initialized from existing prediction when editing starts
+    const [jokerActive, setJokerActive] = useState<boolean>(false);
 
     // Knockout prediction state
     const [knockoutQualified, setKnockoutQualified] = useState<string>("");
@@ -102,6 +106,12 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const windowIsOpen = resultMatch?.modificationWindowOpen === true &&
         windowClosesAt !== null &&
         windowClosesAt > new Date();
+
+    // Jokers: 3 max per World Cup. If current prediction already has joker, don't count it twice.
+    const JOKERS_MAX = 3;
+    const jokersUsedExcludingThis = prediction?.jokerActivated ? jokersUsed - 1 : jokersUsed;
+    const jokersRemaining = JOKERS_MAX - jokersUsedExcludingThis;
+    const canActivateJoker = jokerActive || jokersRemaining > 0;
 
     const canPredict = status === "scheduled";
 
@@ -536,6 +546,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                         onClick={() => {
                                             setHomeScore(String(prediction.homeScore));
                                             setAwayScore(String(prediction.awayScore));
+                                            setJokerActive(prediction.jokerActivated ?? false);
                                             setIsPredicting(true);
                                         }}
                                         className="mt-4 w-full rounded-2xl bg-yellow-200 px-4 py-3 text-sm font-bold text-black transition
@@ -649,6 +660,36 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                         </div>
                                     )}
 
+                                    {/* Joker toggle */}
+                                    <button
+                                        disabled={!canActivateJoker}
+                                        onClick={() => canActivateJoker && setJokerActive((v) => !v)}
+                                        className={`mt-4 w-full rounded-2xl px-4 py-3 text-left transition ${
+                                            jokerActive
+                                                ? "bg-purple-600 text-white"
+                                                : canActivateJoker
+                                                ? "bg-purple-50 border border-purple-200 text-purple-900"
+                                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">🃏</span>
+                                                <div>
+                                                    <p className="text-sm font-black">
+                                                        {jokerActive ? "Joker activado" : "Activar Joker"}
+                                                    </p>
+                                                    <p className={`text-xs font-medium ${jokerActive ? "text-purple-200" : "text-purple-500"}`}>
+                                                        {canActivateJoker
+                                                            ? `Duplica tu puntaje si aciertas · ${jokersRemaining} restante${jokersRemaining !== 1 ? "s" : ""}`
+                                                            : "Ya usaste los 3 jokers del Mundial"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {jokerActive && <span className="text-white font-black text-lg">✓</span>}
+                                        </div>
+                                    </button>
+
                                     <div className="mt-4 flex gap-2">
                                         <button
                                             onClick={() => {
@@ -657,6 +698,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                                 setAwayScore("");
                                                 setKnockoutQualified("");
                                                 setKnockoutPenalties(false);
+                                                setJokerActive(false);
                                             }}
                                             className="flex-1 rounded-2xl bg-gray-200 px-4 py-3 text-sm font-bold text-gray-700"
                                         >
@@ -673,6 +715,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                                 onSavePrediction(match.id, {
                                                     homeScore: Number(homeScore),
                                                     awayScore: Number(awayScore),
+                                                    jokerActivated: jokerActive,
                                                     ...(isKnockout && {
                                                         qualifiedTeamId: knockoutQualified || undefined,
                                                         penaltiesIfDraw: isDraw ? knockoutPenalties : undefined,
@@ -680,6 +723,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                                 });
 
                                                 setIsPredicting(false);
+                                                setJokerActive(false);
                                             }}
                                             className="flex-1 rounded-2xl bg-green-600 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-gray-300"
                                         >

@@ -795,6 +795,7 @@ export default function Home() {
             hasWorldCupStarted={hasWorldCupStarted}
             onSaveSpecialPredictionField={handleSaveSpecialPredictionField}
             now={now}
+            currentUserId={appUser.uid}
           />
         )}
 
@@ -873,6 +874,7 @@ export default function Home() {
         onSavingWatchPartyChange={setIsSavingWatchParty}
         onSaveWindowModification={handleSaveWindowModification}
         onCloseModificationWindow={handleCloseModificationWindow}
+        jokersUsed={Object.values(myPredictions).filter((p) => p.jokerActivated).length}
       />
     </main>
   );

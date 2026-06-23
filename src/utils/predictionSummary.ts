@@ -27,6 +27,9 @@ export type MatchPredictionSummary = {
         homeScore: number;
         awayScore: number;
         points: number;
+        jokerActivated?: boolean;
+        qualifiedTeamId?: string;
+        penaltiesIfDraw?: boolean;
     }[];
     createdAt?: unknown;
     updatedAt?: unknown;
@@ -37,6 +40,7 @@ export type StoredPrediction = {
     matchId: string;
     homeScore: number;
     awayScore: number;
+    jokerActivated?: boolean;
     // Knockout only:
     qualifiedTeamId?: string;
     penaltiesIfDraw?: boolean;
@@ -76,6 +80,9 @@ export async function generateMatchPredictionSummary({
             homeScore: prediction.homeScore,
             awayScore: prediction.awayScore,
             points: calculatePredictionPoints(prediction, result).points,
+            jokerActivated: prediction.jokerActivated ?? false,
+            qualifiedTeamId: prediction.qualifiedTeamId,
+            penaltiesIfDraw: prediction.penaltiesIfDraw,
         };
     });
 

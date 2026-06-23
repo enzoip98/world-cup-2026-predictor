@@ -64,6 +64,10 @@ export function subscribeToMyPredictions(
             predictionsMap[data.matchId] = {
                 homeScore: data.homeScore,
                 awayScore: data.awayScore,
+                jokerActivated: data.jokerActivated ?? false,
+                qualifiedTeamId: data.qualifiedTeamId,
+                penaltiesIfDraw: data.penaltiesIfDraw,
+                modifiedDuringWindow: data.modifiedDuringWindow,
             };
         });
 
@@ -97,6 +101,7 @@ export async function savePredictionToFirebase({
         matchId,
         homeScore: prediction.homeScore,
         awayScore: prediction.awayScore,
+        jokerActivated: prediction.jokerActivated ?? false,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     };
@@ -208,6 +213,9 @@ export type MatchStartedPrediction = {
     matchId: string;
     homeScore: number;
     awayScore: number;
+    jokerActivated?: boolean;
+    qualifiedTeamId?: string;
+    penaltiesIfDraw?: boolean;
 };
 
 export type StartedMatchPredictionsMap = Record<
@@ -241,6 +249,9 @@ export function subscribeToStartedMatchPredictions(
                     matchId: data.matchId,
                     homeScore: data.homeScore,
                     awayScore: data.awayScore,
+                    jokerActivated: data.jokerActivated ?? false,
+                    qualifiedTeamId: data.qualifiedTeamId,
+                    penaltiesIfDraw: data.penaltiesIfDraw,
                 };
             });
 

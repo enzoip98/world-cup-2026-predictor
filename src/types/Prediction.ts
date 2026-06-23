@@ -1,6 +1,7 @@
 export type Prediction = {
     homeScore: number;
     awayScore: number;
+    jokerActivated?: boolean;
     // Knockout only:
     qualifiedTeamId?: string;
     penaltiesIfDraw?: boolean;

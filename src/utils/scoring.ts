@@ -30,7 +30,8 @@ export function calculatePredictionPoints(
     const isKnockoutResult = result.qualifiedTeamId !== undefined || result.wentToPenalties !== undefined;
 
     if (!isKnockoutResult) {
-        return { points: basePoints, reason, exactScore, correctResult };
+        const points = prediction.jokerActivated && basePoints > 0 ? basePoints * 2 : basePoints;
+        return { points, reason, exactScore, correctResult };
     }
 
     // --- Knockout scoring ---
@@ -62,7 +63,8 @@ export function calculatePredictionPoints(
         convictionBonus = 10;
     }
 
-    const total = basePoints + qualifierPoints + penaltiesPoints + convictionBonus;
+    const boostedBase = prediction.jokerActivated && basePoints > 0 ? basePoints * 2 : basePoints;
+    const total = boostedBase + qualifierPoints + penaltiesPoints + convictionBonus;
 
     return {
         points: total,
