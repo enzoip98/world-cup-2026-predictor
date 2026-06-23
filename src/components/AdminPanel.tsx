@@ -3,6 +3,11 @@ import { SpecialResultField, SpecialResults } from "@/lib/specialResults";
 import { AppUser } from "@/lib/users";
 import { useState } from "react";
 import { AdminSpecialResultsSection } from "./AdminSpecialResultsSection";
+import { KnockoutTeamsMap } from "@/lib/knockoutTeams";
+import { matchesData } from "@/data/matchesData";
+import { teamsByFifaCode, teamsById } from "@/data/Teams";
+import { TeamPickerModal } from "./TeamPickerModal";
+import { CountryFlag } from "./CountryFlag";
 
 type Props = {
     party: Party | null;
@@ -17,6 +22,8 @@ type Props = {
         value: string
     ) => Promise<void>;
     onBackfillAttendanceSummaries: () => Promise<void>;
+    knockoutTeams: KnockoutTeamsMap;
+    onSaveKnockoutTeams: (matchId: string, homeTeamId: string, awayTeamId: string) => Promise<void>;
 };
 
 type AdminAction =
@@ -30,7 +37,7 @@ type AdminAction =
     }
     | null;
 
-type AdminTab = "settings" | "final_results";
+type AdminTab = "settings" | "final_results" | "knockout_teams";
 
 export function AdminPanel({
     party,
@@ -42,10 +49,31 @@ export function AdminPanel({
     onDemoteUser,
     onSaveSpecialResultField,
     onBackfillAttendanceSummaries,
+    knockoutTeams,
+    onSaveKnockoutTeams,
 }: Props) {
 
     const [pendingAction, setPendingAction] = useState<AdminAction>(null);
     const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>("settings");
+
+    // Knockout team assignment state: { [matchId]: { home, away } } — stores fifaCode (lowercase)
+    const [knockoutDraft, setKnockoutDraft] = useState<Record<string, { home: string; away: string }>>({});
+    const [savingKnockout, setSavingKnockout] = useState<string | null>(null);
+    // Which match + slot is currently picking: { matchId, slot: "home" | "away" }
+    const [activePicker, setActivePicker] = useState<{ matchId: string; slot: "home" | "away" } | null>(null);
+
+    const knockoutMatches = matchesData.filter((m) => m.stage !== "group");
+
+    // Convert team.id (e.g. "mexico") → fifaCode lowercase (e.g. "mex") used in matchesData
+    const teamIdToFifaCode = (teamId: string): string => {
+        const team = teamsById[teamId];
+        return team ? team.fifaCode.toLowerCase() : teamId;
+    };
+
+    // Convert fifaCode lowercase (e.g. "mex") → team.id (e.g. "mexico") for TeamPickerModal
+    const fifaCodeToTeamId = (fifaCode: string): string | undefined => {
+        return teamsByFifaCode[fifaCode]?.id;
+    };
 
     if (!party) return null;
 
@@ -69,25 +97,26 @@ export function AdminPanel({
 
     return (
         <>
-            <div className="grid grid-cols-2 rounded-3xl bg-gray-100 p-1 shadow-sm my-4">
+            <div className="grid grid-cols-3 rounded-3xl bg-gray-100 p-1 shadow-sm my-4">
                 <button
                     onClick={() => setActiveAdminTab("settings")}
-                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "settings"
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-500"
-                        }`}
+                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "settings" ? "bg-gray-900 text-white" : "text-gray-500"}`}
                 >
                     Ajustes
                 </button>
 
                 <button
-                    onClick={() => setActiveAdminTab("final_results")}
-                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "final_results"
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-500"
-                        }`}
+                    onClick={() => setActiveAdminTab("knockout_teams")}
+                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "knockout_teams" ? "bg-gray-900 text-white" : "text-gray-500"}`}
                 >
-                    Resultados finales
+                    Eliminatorias
+                </button>
+
+                <button
+                    onClick={() => setActiveAdminTab("final_results")}
+                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "final_results" ? "bg-gray-900 text-white" : "text-gray-500"}`}
+                >
+                    Especiales
                 </button>
             </div>
 
@@ -278,6 +307,119 @@ export function AdminPanel({
                         )}
                     </section>
                 </>)}
+
+            {activeAdminTab === "knockout_teams" && (
+                <section className="space-y-4 my-4">
+                    <div className="rounded-3xl bg-white p-5 shadow-sm">
+                        <p className="text-sm font-bold uppercase tracking-widest text-green-600">Eliminatorias</p>
+                        <h2 className="mt-2 text-2xl font-black text-gray-950">Equipos por partido</h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            Asigna los equipos cuando se conozcan los clasificados de cada llave.
+                        </p>
+                    </div>
+
+                    {knockoutMatches.map((match) => {
+                        const saved = knockoutTeams[match.id];
+                        const draft = knockoutDraft[match.id] ?? {
+                            home: saved?.homeTeamId ?? "",
+                            away: saved?.awayTeamId ?? "",
+                        };
+
+                        const homeTeam = draft.home ? teamsByFifaCode[draft.home] : null;
+                        const awayTeam = draft.away ? teamsByFifaCode[draft.away] : null;
+
+                        const stageLabel: Record<string, string> = {
+                            round_of_32: "Ronda de 32",
+                            round_of_16: "Octavos",
+                            quarter_final: "Cuartos",
+                            semi_final: "Semis",
+                            third_place: "3er puesto",
+                            final: "Final",
+                        };
+
+                        return (
+                            <div key={match.id} className="rounded-3xl bg-white p-5 shadow-sm">
+                                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                                    {stageLabel[match.stage] ?? match.stage} · M{match.matchNumber}
+                                </p>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {match.homeLabel} vs {match.awayLabel}
+                                </p>
+
+                                {saved && (
+                                    <p className="mt-1 text-xs text-green-600 font-semibold">
+                                        ✓ {teamsByFifaCode[saved.homeTeamId]?.nameEs} vs {teamsByFifaCode[saved.awayTeamId]?.nameEs}
+                                    </p>
+                                )}
+
+                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                    <div>
+                                        <p className="text-xs text-gray-500 mb-1">Local</p>
+                                        <button
+                                            onClick={() => setActivePicker({ matchId: match.id, slot: "home" })}
+                                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-bold text-left flex items-center gap-2"
+                                        >
+                                            {homeTeam ? <><CountryFlag homeTeam={homeTeam} />{homeTeam.nameEs}</> : "Seleccionar"}
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 mb-1">Visitante</p>
+                                        <button
+                                            onClick={() => setActivePicker({ matchId: match.id, slot: "away" })}
+                                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-bold text-left flex items-center gap-2"
+                                        >
+                                            {awayTeam ? <><CountryFlag homeTeam={awayTeam} />{awayTeam.nameEs}</> : "Seleccionar"}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button
+                                    disabled={!draft.home || !draft.away || savingKnockout === match.id}
+                                    onClick={async () => {
+                                        setSavingKnockout(match.id);
+                                        await onSaveKnockoutTeams(match.id, draft.home, draft.away);
+                                        setSavingKnockout(null);
+                                    }}
+                                    className="mt-3 w-full rounded-2xl bg-gray-900 py-3 text-sm font-black text-white disabled:opacity-40"
+                                >
+                                    {savingKnockout === match.id ? "Guardando..." : "Guardar equipos"}
+                                </button>
+                            </div>
+                        );
+                    })}
+
+                    {/* TeamPickerModal — mounts when a slot is being picked */}
+                    {activePicker && (() => {
+                        const { matchId, slot } = activePicker;
+                        const draft = knockoutDraft[matchId] ?? {
+                            home: knockoutTeams[matchId]?.homeTeamId ?? "",
+                            away: knockoutTeams[matchId]?.awayTeamId ?? "",
+                        };
+                        const disabledFifaCode = slot === "home" ? draft.away : draft.home;
+                        const disabledTeamId = disabledFifaCode ? fifaCodeToTeamId(disabledFifaCode) : undefined;
+
+                        return (
+                            <TeamPickerModal
+                                title={slot === "home" ? "Seleccionar local" : "Seleccionar visitante"}
+                                disabledTeamId={disabledTeamId}
+                                isSaving={false}
+                                onClose={() => setActivePicker(null)}
+                                onSelectTeam={(teamId) => {
+                                    const fifaCode = teamIdToFifaCode(teamId);
+                                    setKnockoutDraft((prev) => ({
+                                        ...prev,
+                                        [matchId]: {
+                                            ...draft,
+                                            [slot]: fifaCode,
+                                        },
+                                    }));
+                                    setActivePicker(null);
+                                }}
+                            />
+                        );
+                    })()}
+                </section>
+            )}
 
             {activeAdminTab === "final_results" && (
                 <AdminSpecialResultsSection

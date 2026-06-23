@@ -37,6 +37,10 @@ export type StoredPrediction = {
     matchId: string;
     homeScore: number;
     awayScore: number;
+    // Knockout only:
+    qualifiedTeamId?: string;
+    penaltiesIfDraw?: boolean;
+    modifiedDuringWindow?: boolean;
     createdAt?: unknown;
     updatedAt?: unknown;
 };

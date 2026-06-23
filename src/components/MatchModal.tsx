@@ -28,7 +28,12 @@ type Props = {
     onSaveResult: (matchId: string, result: {
         homeScore: number;
         awayScore: number;
+        qualifiedTeamId?: string;
+        wentToPenalties?: boolean;
+        openModificationWindowMinutes?: number;
     }) => void;
+    onSaveWindowModification: (matchId: string, qualifiedTeamId: string, penaltiesIfDraw: boolean) => void;
+    onCloseModificationWindow: (matchId: string) => void;
     status: MatchStatus;
     attendees: AppUser[];
     notAttendees: AppUser[];
@@ -52,7 +57,8 @@ const finishedAttendanceOptions: AttendanceOption[] = [
 
 export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance, onAttendanceChange,
     onSavePrediction, prediction, onSaveResult, resultMatch, status, attendees, notAttendees,
-    appUser, isWatchParty, watchParty, members, onSavingWatchPartyChange }: Props) {
+    appUser, isWatchParty, watchParty, members, onSavingWatchPartyChange,
+    onSaveWindowModification, onCloseModificationWindow }: Props) {
 
     const [isPredicting, setIsPredicting] = useState(false);
     const [isSavingResult, setIsSavingResult] = useState(false);
@@ -65,21 +71,53 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
     const [isSavingWatchParty, setIsSavingWatchParty] = useState(false);
     const [isEditingWatchParty, setIsEditingWatchParty] = useState(false);
 
+    // Knockout prediction state
+    const [knockoutQualified, setKnockoutQualified] = useState<string>("");
+    const [knockoutPenalties, setKnockoutPenalties] = useState<boolean>(false);
+
+    // Knockout result admin state
+    const [resultQualified, setResultQualified] = useState<string>("");
+    const [resultPenalties, setResultPenalties] = useState<boolean>(false);
+    const [resultWindowMinutes, setResultWindowMinutes] = useState<number>(15);
+    const [resultOpenWindow, setResultOpenWindow] = useState<boolean>(true);
+
+    // Modification window state
+    const [windowQualified, setWindowQualified] = useState<string>(prediction?.qualifiedTeamId ?? "");
+    const [windowPenalties, setWindowPenalties] = useState<boolean>(prediction?.penaltiesIfDraw ?? false);
+    const [isSavingWindow, setIsSavingWindow] = useState(false);
+
     if (!match) return null;
 
+    const isKnockout = match.stage !== "group";
     const isFinished = resultMatch?.status === "finished";
     const scoreResult = prediction && isFinished ? calculatePredictionPoints(prediction, resultMatch) : null;
 
     const homeTeam = match.homeTeamId ? teamsByFifaCode[match.homeTeamId] : null;
     const awayTeam = match.awayTeamId ? teamsByFifaCode[match.awayTeamId] : null;
 
+    // Modification window helpers
+    const windowClosesAt = resultMatch?.modificationWindowClosesAt
+        ? new Date(resultMatch.modificationWindowClosesAt)
+        : null;
+    const windowIsOpen = resultMatch?.modificationWindowOpen === true &&
+        windowClosesAt !== null &&
+        windowClosesAt > new Date();
+
     const canPredict = status === "scheduled";
+
+    const predictedDraw = homeScore !== "" && awayScore !== "" && Number(homeScore) === Number(awayScore);
+    const knockoutFieldsValid = !isKnockout || (
+        knockoutQualified !== "" &&
+        (!predictedDraw || true) // penaltiesIfDraw always has a value (defaults false)
+    );
 
     const canSavePrediction = (
         homeScore !== "" &&
         awayScore !== "" &&
         Number(homeScore) >= 0 &&
-        Number(awayScore) >= 0) && canPredict;
+        Number(awayScore) >= 0 &&
+        knockoutFieldsValid
+    ) && canPredict;
 
     const canSaveResult =
         realHomeScore !== "" &&
@@ -547,9 +585,69 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                     {homeTeam && awayTeam && (
                                         <ScoreInput
                                             homeTeam={homeTeam}
-                                            awayTeam={awayTeam} homeScore={homeScore}
-                                            setHomeScore={setHomeScore} awayScore={awayScore}
-                                            setAwayScore={setAwayScore} />)}
+                                            awayTeam={awayTeam}
+                                            homeScore={homeScore}
+                                            setHomeScore={(v) => {
+                                                setHomeScore(v);
+                                                if (isKnockout && v !== "" && awayScore !== "") {
+                                                    const h = Number(v), a = Number(awayScore);
+                                                    if (h > a) setKnockoutQualified(match.homeTeamId ?? "");
+                                                    else if (h < a) setKnockoutQualified(match.awayTeamId ?? "");
+                                                    else setKnockoutQualified("");
+                                                }
+                                            }}
+                                            awayScore={awayScore}
+                                            setAwayScore={(v) => {
+                                                setAwayScore(v);
+                                                if (isKnockout && homeScore !== "" && v !== "") {
+                                                    const h = Number(homeScore), a = Number(v);
+                                                    if (h > a) setKnockoutQualified(match.homeTeamId ?? "");
+                                                    else if (h < a) setKnockoutQualified(match.awayTeamId ?? "");
+                                                    else setKnockoutQualified("");
+                                                }
+                                            }}
+                                        />
+                                    )}
+
+                                    {/* Knockout extra fields */}
+                                    {isKnockout && homeScore !== "" && awayScore !== "" && homeTeam && awayTeam && (
+                                        <div className="mt-4 rounded-2xl bg-white p-4 space-y-4 border border-gray-100">
+                                            <div>
+                                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Quién clasifica?</p>
+                                                {predictedDraw ? (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => setKnockoutQualified(match.homeTeamId ?? "")}
+                                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutQualified === match.homeTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}
+                                                        >
+                                                            {homeTeam.name}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setKnockoutQualified(match.awayTeamId ?? "")}
+                                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutQualified === match.awayTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}
+                                                        >
+                                                            {awayTeam.name}
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm font-semibold text-gray-700">
+                                                        {knockoutQualified === match.homeTeamId ? homeTeam.name : knockoutQualified === match.awayTeamId ? awayTeam.name : "—"}
+                                                        <span className="ml-2 text-xs text-gray-400">(según tu marcador)</span>
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {predictedDraw && (
+                                                <div>
+                                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Hay penales?</p>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => setKnockoutPenalties(false)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${!knockoutPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>No</button>
+                                                        <button onClick={() => setKnockoutPenalties(true)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>Sí</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div className="mt-4 flex gap-2">
                                         <button
@@ -557,6 +655,8 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                                 setIsPredicting(false);
                                                 setHomeScore("");
                                                 setAwayScore("");
+                                                setKnockoutQualified("");
+                                                setKnockoutPenalties(false);
                                             }}
                                             className="flex-1 rounded-2xl bg-gray-200 px-4 py-3 text-sm font-bold text-gray-700"
                                         >
@@ -566,15 +666,17 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                         <button
                                             disabled={!canSavePrediction}
                                             onClick={() => {
-                                                const confirmed = window.confirm(
-                                                    "¿Confirmas tu pronóstico?"
-                                                );
-
+                                                const confirmed = window.confirm("¿Confirmas tu pronóstico?");
                                                 if (!confirmed) return;
 
+                                                const isDraw = Number(homeScore) === Number(awayScore);
                                                 onSavePrediction(match.id, {
                                                     homeScore: Number(homeScore),
                                                     awayScore: Number(awayScore),
+                                                    ...(isKnockout && {
+                                                        qualifiedTeamId: knockoutQualified || undefined,
+                                                        penaltiesIfDraw: isDraw ? knockoutPenalties : undefined,
+                                                    }),
                                                 });
 
                                                 setIsPredicting(false);
@@ -589,14 +691,91 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                             )}
                     </div>
 
+                    {/* Modification window banner */}
+                    {isFinished && windowIsOpen && isKnockout && homeTeam && awayTeam && (
+                        <div className="mt-4 rounded-3xl bg-amber-50 border border-amber-200 p-5">
+                            <p className="text-base font-black text-amber-900">⏱ Tiempo Extra</p>
+                            <p className="mt-1 text-sm text-amber-700">
+                                El partido fue empate. Puedes modificar tus apuestas de penales y clasificado.
+                                {windowClosesAt && (
+                                    <span className="ml-1 font-bold">Cierra: {windowClosesAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                )}
+                            </p>
+
+                            {prediction?.modifiedDuringWindow && (
+                                <p className="mt-2 text-xs text-amber-600 font-semibold">✓ Ya modificaste esta apuesta.</p>
+                            )}
+
+                            <div className="mt-4 space-y-3">
+                                <div>
+                                    <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2">¿Quién clasifica?</p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setWindowQualified(match.homeTeamId ?? "")}
+                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${windowQualified === match.homeTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}
+                                        >
+                                            {homeTeam.name}
+                                        </button>
+                                        <button
+                                            onClick={() => setWindowQualified(match.awayTeamId ?? "")}
+                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${windowQualified === match.awayTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}
+                                        >
+                                            {awayTeam.name}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2">¿Hay penales?</p>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setWindowPenalties(false)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${!windowPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>No</button>
+                                        <button onClick={() => setWindowPenalties(true)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${windowPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>Sí</button>
+                                    </div>
+                                </div>
+
+                                <button
+                                    disabled={!windowQualified || isSavingWindow}
+                                    onClick={async () => {
+                                        if (!windowQualified) return;
+                                        setIsSavingWindow(true);
+                                        await onSaveWindowModification(match.id, windowQualified, windowPenalties);
+                                        setIsSavingWindow(false);
+                                    }}
+                                    className="w-full rounded-2xl bg-amber-600 py-3 text-sm font-black text-white disabled:opacity-50"
+                                >
+                                    {isSavingWindow ? "Guardando..." : "Guardar modificación"}
+                                </button>
+
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => onCloseModificationWindow(match.id)}
+                                        className="w-full rounded-2xl bg-gray-200 py-2 text-xs font-bold text-gray-600"
+                                    >
+                                        Cerrar ventana (admin)
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {isFinished && <>
                         <div className="my-6 flex justify-center gap-1 flex-col">
                             <p className="text-xl text-center ps-1 font-bold text-gray-950">Resultado oficial</p>
                             {homeTeam && awayTeam && (
                                 <ScoreResultSection homeTeam={homeTeam} awayTeam={awayTeam} result={resultMatch} />
                             )}
+                            {isKnockout && resultMatch?.qualifiedTeamId && (
+                                <div className="mt-2 text-center text-sm text-gray-600">
+                                    <span className="font-semibold">Clasificó: </span>
+                                    {teamsByFifaCode[resultMatch.qualifiedTeamId]?.name ?? resultMatch.qualifiedTeamId}
+                                    {resultMatch.wentToPenalties !== undefined && (
+                                        <span className="ml-2 text-gray-400">
+                                            {resultMatch.wentToPenalties ? "· Con penales" : "· Sin penales"}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
-
                     </>
                     }
 
@@ -629,9 +808,61 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                 {homeTeam && awayTeam && (
                                     <ScoreInput
                                         homeTeam={homeTeam}
-                                        awayTeam={awayTeam} homeScore={realHomeScore}
-                                        setHomeScore={setRealHomeScore} awayScore={realAwayScore}
-                                        setAwayScore={setRealAwayScore} />
+                                        awayTeam={awayTeam}
+                                        homeScore={realHomeScore}
+                                        setHomeScore={setRealHomeScore}
+                                        awayScore={realAwayScore}
+                                        setAwayScore={setRealAwayScore}
+                                    />
+                                )}
+
+                                {/* Knockout admin fields */}
+                                {isKnockout && realHomeScore !== "" && realAwayScore !== "" && homeTeam && awayTeam && (
+                                    <div className="mt-4 rounded-2xl bg-white p-4 space-y-4 border border-gray-100">
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Quién clasificó?</p>
+                                            {Number(realHomeScore) === Number(realAwayScore) ? (
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setResultQualified(match.homeTeamId ?? "")} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultQualified === match.homeTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>{homeTeam.name}</button>
+                                                    <button onClick={() => setResultQualified(match.awayTeamId ?? "")} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultQualified === match.awayTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>{awayTeam.name}</button>
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm font-semibold text-gray-700">
+                                                    {Number(realHomeScore) > Number(realAwayScore) ? homeTeam.name : awayTeam.name}
+                                                    <span className="ml-2 text-xs text-gray-400">(automático)</span>
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {Number(realHomeScore) === Number(realAwayScore) && (
+                                            <div>
+                                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Hubo penales?</p>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setResultPenalties(false)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${!resultPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>No</button>
+                                                    <button onClick={() => setResultPenalties(true)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>Sí</button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {Number(realHomeScore) === Number(realAwayScore) && (
+                                            <div>
+                                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ventana de modificación</p>
+                                                <div className="flex gap-2 items-center">
+                                                    <button onClick={() => setResultOpenWindow(!resultOpenWindow)} className={`rounded-xl px-3 py-2 text-sm font-bold border ${resultOpenWindow ? "bg-amber-500 text-white border-amber-500" : "bg-white text-gray-700 border-gray-200"}`}>
+                                                        {resultOpenWindow ? "Activar ventana" : "No abrir ventana"}
+                                                    </button>
+                                                    {resultOpenWindow && (
+                                                        <select value={resultWindowMinutes} onChange={(e) => setResultWindowMinutes(Number(e.target.value))} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-bold">
+                                                            <option value={5}>5 min</option>
+                                                            <option value={10}>10 min</option>
+                                                            <option value={15}>15 min</option>
+                                                            <option value={20}>20 min</option>
+                                                        </select>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
 
                                 <div className="mt-4 flex gap-2">
@@ -640,6 +871,8 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             setIsSavingResult(false);
                                             setRealHomeScore("");
                                             setRealAwayScore("");
+                                            setResultQualified("");
+                                            setResultPenalties(false);
                                         }}
                                         className="flex-1 rounded-2xl bg-gray-200 px-4 py-3 text-sm font-bold text-gray-700"
                                     >
@@ -647,17 +880,26 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                     </button>
 
                                     <button
-                                        disabled={!canSaveResult}
+                                        disabled={!canSaveResult || (isKnockout && Number(realHomeScore) === Number(realAwayScore) && !resultQualified)}
                                         onClick={() => {
                                             const confirmed = window.confirm(
                                                 "¿Confirmas el resultado? Luego no podrás cambiarlo."
                                             );
-
                                             if (!confirmed) return;
+
+                                            const isDraw = Number(realHomeScore) === Number(realAwayScore);
+                                            const impliedQualified = Number(realHomeScore) > Number(realAwayScore)
+                                                ? match.homeTeamId ?? ""
+                                                : match.awayTeamId ?? "";
 
                                             onSaveResult(match.id, {
                                                 homeScore: Number(realHomeScore),
-                                                awayScore: Number(realAwayScore)
+                                                awayScore: Number(realAwayScore),
+                                                ...(isKnockout && {
+                                                    qualifiedTeamId: isDraw ? resultQualified : impliedQualified,
+                                                    wentToPenalties: isDraw ? resultPenalties : false,
+                                                    openModificationWindowMinutes: isDraw && resultOpenWindow ? resultWindowMinutes : 0,
+                                                }),
                                             });
 
                                             setIsSavingResult(false);

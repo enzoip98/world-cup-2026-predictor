@@ -1,6 +1,10 @@
 export type Prediction = {
     homeScore: number;
     awayScore: number;
+    // Knockout only:
+    qualifiedTeamId?: string;
+    penaltiesIfDraw?: boolean;
+    modifiedDuringWindow?: boolean;
 };
 
 export type ScoreReason =
@@ -13,4 +17,9 @@ export type ScoreResult = {
     reason: ScoreReason;
     exactScore: boolean;
     correctResult: boolean;
+    // Knockout breakdown:
+    basePoints?: number;
+    qualifierPoints?: number;
+    penaltiesPoints?: number;
+    convictionBonus?: number;
 };

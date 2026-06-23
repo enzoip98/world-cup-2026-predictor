@@ -29,6 +29,9 @@ import { matchesData } from "@/data/matchesData";
 import { Button } from "@base-ui/react";
 import { backfillFinishedMatchPredictionSummaries, generateMatchPredictionSummary, MatchPredictionSummary, subscribeToMatchPredictionSummaries } from "@/utils/predictionSummary";
 import { AttendanceSummaryMap, backfillAttendanceSummaries, subscribeToAttendanceSummaries } from "@/utils/attendanceSummary";
+import { KnockoutTeamsMap, saveKnockoutTeamAssignment, subscribeToKnockoutTeams } from "@/lib/knockoutTeams";
+import { saveKnockoutWindowModification } from "@/lib/predictions";
+import { closeModificationWindow } from "@/lib/results";
 
 export default function Home() {
 
@@ -49,8 +52,6 @@ export default function Home() {
   const [matchFilter, setMatchFilter] = useState<"all" | "today" | "scheduled" | "live" | "finished" | "missing_prediction">("scheduled");
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-
-  const matches = matchesData;
 
   const { appUser, loadingAuth, isAdmin } = useAuth();
 
@@ -94,6 +95,24 @@ export default function Home() {
   const [isSavingAttendance, setIsSavingAttendance] = useState(false);
 
   const [isSavingAdmin, setIsSavingAdmin] = useState(false);
+  const [knockoutTeams, setKnockoutTeams] = useState<KnockoutTeamsMap>({});
+
+  useEffect(() => {
+    const unsubscribe = subscribeToKnockoutTeams(setKnockoutTeams);
+    return () => unsubscribe();
+  }, []);
+
+  const matches = useMemo(() => {
+    return matchesData.map((match) => {
+      const assignment = knockoutTeams[match.id];
+      if (!assignment) return match;
+      return {
+        ...match,
+        homeTeamId: assignment.homeTeamId,
+        awayTeamId: assignment.awayTeamId,
+      };
+    });
+  }, [knockoutTeams]);
 
   useEffect(() => {
     if (!appUser?.activePartyId) return;
@@ -267,6 +286,9 @@ export default function Home() {
     result: {
       homeScore: number;
       awayScore: number;
+      qualifiedTeamId?: string;
+      wentToPenalties?: boolean;
+      openModificationWindowMinutes?: number;
     }
   ) => {
     if (!appUser) return;
@@ -277,7 +299,8 @@ export default function Home() {
       homeScore: result.homeScore,
       awayScore: result.awayScore,
       status: "finished" as const,
-      updatedBy: appUser.uid,
+      qualifiedTeamId: result.qualifiedTeamId,
+      wentToPenalties: result.wentToPenalties,
     };
 
     try {
@@ -288,6 +311,9 @@ export default function Home() {
         homeScore: result.homeScore,
         awayScore: result.awayScore,
         updatedBy: appUser.uid,
+        qualifiedTeamId: result.qualifiedTeamId,
+        wentToPenalties: result.wentToPenalties,
+        openModificationWindowMinutes: result.openModificationWindowMinutes,
       });
 
       await generateMatchPredictionSummary({
@@ -446,6 +472,31 @@ export default function Home() {
   const handleBackfillAttendanceSummaries = async () => {
     if (!appUser?.activePartyId) return;
     await backfillAttendanceSummaries({ partyId: appUser.activePartyId });
+  };
+
+  const handleSaveKnockoutTeams = async (matchId: string, homeTeamId: string, awayTeamId: string) => {
+    if (!appUser?.uid || !isAdmin) return;
+    await saveKnockoutTeamAssignment({ matchId, homeTeamId, awayTeamId, updatedBy: appUser.uid });
+  };
+
+  const handleCloseModificationWindow = async (matchId: string) => {
+    if (!isAdmin) return;
+    await closeModificationWindow(matchId);
+  };
+
+  const handleSaveWindowModification = async (
+    matchId: string,
+    qualifiedTeamId: string,
+    penaltiesIfDraw: boolean
+  ) => {
+    if (!appUser?.activePartyId || !appUser?.uid) return;
+    await saveKnockoutWindowModification({
+      partyId: appUser.activePartyId,
+      userId: appUser.uid,
+      matchId,
+      qualifiedTeamId,
+      penaltiesIfDraw,
+    });
   };
 
   const leaderboard = calculateLeaderboard(
@@ -794,6 +845,8 @@ export default function Home() {
             onDemoteUser={handleDemoteUser}
             onSaveSpecialResultField={handleSaveSpecialResultField}
             onBackfillAttendanceSummaries={handleBackfillAttendanceSummaries}
+            knockoutTeams={knockoutTeams}
+            onSaveKnockoutTeams={handleSaveKnockoutTeams}
           />
         )}
 
@@ -817,6 +870,8 @@ export default function Home() {
         watchParty={selectedWatchParty}
         members={partyUsers}
         onSavingWatchPartyChange={setIsSavingWatchParty}
+        onSaveWindowModification={handleSaveWindowModification}
+        onCloseModificationWindow={handleCloseModificationWindow}
       />
     </main>
   );

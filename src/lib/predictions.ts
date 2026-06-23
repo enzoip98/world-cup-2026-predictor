@@ -92,17 +92,46 @@ export async function savePredictionToFirebase({
         predictionId
     );
 
+    const data: Record<string, unknown> = {
+        userId,
+        matchId,
+        homeScore: prediction.homeScore,
+        awayScore: prediction.awayScore,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    };
+
+    if (prediction.qualifiedTeamId !== undefined) data.qualifiedTeamId = prediction.qualifiedTeamId;
+    if (prediction.penaltiesIfDraw !== undefined) data.penaltiesIfDraw = prediction.penaltiesIfDraw;
+
+    await setDoc(predictionRef, data, { merge: false });
+}
+
+export async function saveKnockoutWindowModification({
+    partyId,
+    userId,
+    matchId,
+    qualifiedTeamId,
+    penaltiesIfDraw,
+}: {
+    partyId: string;
+    userId: string;
+    matchId: string;
+    qualifiedTeamId: string;
+    penaltiesIfDraw: boolean;
+}) {
+    const predictionId = `${userId}_${matchId}`;
+    const predictionRef = doc(db, "parties", partyId, "predictions", predictionId);
+
     await setDoc(
         predictionRef,
         {
-            userId,
-            matchId,
-            homeScore: prediction.homeScore,
-            awayScore: prediction.awayScore,
-            createdAt: serverTimestamp(),
+            qualifiedTeamId,
+            penaltiesIfDraw,
+            modifiedDuringWindow: true,
             updatedAt: serverTimestamp(),
         },
-        { merge: false }
+        { merge: true }
     );
 }
 

@@ -34,24 +34,45 @@ export async function saveResultToFirebase({
     homeScore,
     awayScore,
     updatedBy,
+    qualifiedTeamId,
+    wentToPenalties,
+    openModificationWindowMinutes,
 }: {
     matchId: string;
     homeScore: number;
     awayScore: number;
     updatedBy: string;
+    qualifiedTeamId?: string;
+    wentToPenalties?: boolean;
+    openModificationWindowMinutes?: number;
 }) {
     const resultRef = doc(db, "results", matchId);
 
-    await setDoc(
-        resultRef,
-        {
-            matchId,
-            homeScore,
-            awayScore,
-            status: "finished",
-            updatedBy,
-            updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-    );
+    const isDraw = homeScore === awayScore;
+    const shouldOpenWindow = isDraw && openModificationWindowMinutes && openModificationWindowMinutes > 0;
+
+    const data: Record<string, unknown> = {
+        matchId,
+        homeScore,
+        awayScore,
+        status: "finished",
+        updatedBy,
+        updatedAt: serverTimestamp(),
+    };
+
+    if (qualifiedTeamId !== undefined) data.qualifiedTeamId = qualifiedTeamId;
+    if (wentToPenalties !== undefined) data.wentToPenalties = wentToPenalties;
+
+    if (shouldOpenWindow) {
+        const closesAt = new Date(Date.now() + openModificationWindowMinutes * 60 * 1000);
+        data.modificationWindowOpen = true;
+        data.modificationWindowClosesAt = closesAt.toISOString();
+    }
+
+    await setDoc(resultRef, data, { merge: true });
+}
+
+export async function closeModificationWindow(matchId: string) {
+    const resultRef = doc(db, "results", matchId);
+    await setDoc(resultRef, { modificationWindowOpen: false }, { merge: true });
 }

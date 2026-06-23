@@ -9,39 +9,70 @@ function getOutcome(homeScore: number, awayScore: number) {
     return "draw";
 }
 
-export function calculatePredictionPoints(
-    prediction: Prediction,
-    result: MatchResult
-): ScoreResult {
+function calculateBasePoints(prediction: Prediction, result: MatchResult): { basePoints: number; reason: ScoreResult["reason"]; exactScore: boolean; correctResult: boolean } {
     const exactScore =
         prediction.homeScore === result.homeScore && prediction.awayScore === result.awayScore;
     const predictedOutcome = getOutcome(prediction.homeScore, prediction.awayScore);
     const realOutcome = getOutcome(result.homeScore, result.awayScore);
     const correctResult = predictedOutcome === realOutcome;
 
-    if (exactScore) {
-        return {
-            points: 5,
-            reason: "exact_score",
-            exactScore: true,
-            correctResult: true,
-        };
+    if (exactScore) return { basePoints: 5, reason: "exact_score", exactScore: true, correctResult: true };
+    if (correctResult) return { basePoints: 3, reason: "correct_result", exactScore: false, correctResult: true };
+    return { basePoints: 0, reason: "failed", exactScore: false, correctResult: false };
+}
+
+export function calculatePredictionPoints(
+    prediction: Prediction,
+    result: MatchResult
+): ScoreResult {
+    const { basePoints, reason, exactScore, correctResult } = calculateBasePoints(prediction, result);
+
+    const isKnockoutResult = result.qualifiedTeamId !== undefined || result.wentToPenalties !== undefined;
+
+    if (!isKnockoutResult) {
+        return { points: basePoints, reason, exactScore, correctResult };
     }
 
-    if (correctResult) {
-        return {
-            points: 3,
-            reason: "correct_result",
-            exactScore: false,
-            correctResult: true,
-        };
+    // --- Knockout scoring ---
+
+    // Qualifier points (+5): prediction.qualifiedTeamId is always set for knockout
+    // (either manually for draw predictions, or auto-derived for non-draw before saving)
+    let qualifierPoints = 0;
+    if (result.qualifiedTeamId && prediction.qualifiedTeamId) {
+        if (prediction.qualifiedTeamId === result.qualifiedTeamId) qualifierPoints = 5;
     }
+
+    // Penalties points (+5): only if real result was draw (went to extra time)
+    // and user explicitly engaged with the question (predicted draw or modified during window)
+    let penaltiesPoints = 0;
+    const resultWasDraw = result.homeScore === result.awayScore;
+    if (resultWasDraw && result.wentToPenalties !== undefined) {
+        const userEngaged = prediction.homeScore === prediction.awayScore || prediction.penaltiesIfDraw !== undefined;
+        if (userEngaged) {
+            const predictedPenalties = prediction.penaltiesIfDraw ?? false;
+            if (predictedPenalties === result.wentToPenalties) penaltiesPoints = 5;
+        }
+    }
+
+    // Conviction bonus (+10): predicted draw + didn't modify + all 3 correct
+    let convictionBonus = 0;
+    const predictedDraw = prediction.homeScore === prediction.awayScore;
+    if (predictedDraw && resultWasDraw && !prediction.modifiedDuringWindow &&
+        basePoints === 5 && qualifierPoints === 5 && penaltiesPoints === 5) {
+        convictionBonus = 10;
+    }
+
+    const total = basePoints + qualifierPoints + penaltiesPoints + convictionBonus;
 
     return {
-        points: 0,
-        reason: "failed",
-        exactScore: false,
-        correctResult: false,
+        points: total,
+        reason,
+        exactScore,
+        correctResult,
+        basePoints,
+        qualifierPoints,
+        penaltiesPoints,
+        convictionBonus,
     };
 }
 
