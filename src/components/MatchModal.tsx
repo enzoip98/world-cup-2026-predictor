@@ -541,6 +541,14 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                     />
                                 )}
 
+                                {prediction.jokerActivated && (
+                                    <div className="mt-2 flex justify-center">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-xs font-black text-purple-700">
+                                            🃏 Joker activado · puntos x2
+                                        </span>
+                                    </div>
+                                )}
+
                                 {canPredict && !isFinished && (
                                     <button
                                         onClick={() => {

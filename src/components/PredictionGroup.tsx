@@ -208,6 +208,14 @@ export function PredictionGroup({
                             </div>
                         </div>
 
+                        {"jokerActivated" in prediction && (prediction as { jokerActivated?: boolean }).jokerActivated && (
+                            <div className="flex justify-center mt-1 mb-1">
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-[10px] font-black text-purple-700">
+                                    🃏 Joker activado · x2
+                                </span>
+                            </div>
+                        )}
+
                         {result?.status === "finished" && (
                             <div className="flex flex-row items-center justify-between">
                                 <p className="text-center w-20 shrink-0 text-[11px] font-semibold capitalize leading-tight tracking-wide text-gray-900">
