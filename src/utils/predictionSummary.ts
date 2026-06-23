@@ -86,11 +86,16 @@ export async function generateMatchPredictionSummary({
         };
     });
 
+    // Firestore rejects undefined values — strip them before saving
+    const cleanResult = Object.fromEntries(
+        Object.entries(result).filter(([, v]) => v !== undefined)
+    );
+
     await setDoc(
         doc(db, "parties", partyId, "matchPredictionSummaries", matchId),
         {
             matchId,
-            result,
+            result: cleanResult,
             predictions,
             predictionsCount: predictions.length,
             updatedAt: serverTimestamp(),

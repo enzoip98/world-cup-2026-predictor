@@ -299,8 +299,8 @@ export default function Home() {
       homeScore: result.homeScore,
       awayScore: result.awayScore,
       status: "finished" as const,
-      qualifiedTeamId: result.qualifiedTeamId,
-      wentToPenalties: result.wentToPenalties,
+      ...(result.qualifiedTeamId !== undefined && { qualifiedTeamId: result.qualifiedTeamId }),
+      ...(result.wentToPenalties !== undefined && { wentToPenalties: result.wentToPenalties }),
     };
 
     try {
@@ -325,6 +325,7 @@ export default function Home() {
 
     } catch (error) {
       console.error("Error guardando resultado:", error);
+      alert("Error al guardar el resultado. Revisa la consola.");
     } finally {
       setIsSavingResult(false);
     }
