@@ -40,10 +40,17 @@ function getFirstName(name: string): string {
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
+function getMedal(sorted: PredictionRow[], i: number): string {
+    const pts = sorted[i].points;
+    if (pts === 0) return "";
+    if (sorted[i + 1]?.points === pts) return ""; // tied with next
+    if (i > 0 && sorted[i - 1]?.points === pts) return ""; // tied with prev
+    return MEDALS[i] ?? "";
+}
+
 export const PredictionGroupShareCard = forwardRef<HTMLDivElement, Props>(
     ({ homeTeamName, awayTeamName, homeFlagDataUrl, awayFlagDataUrl, result, predictions }, ref) => {
         const sorted = [...predictions].sort((a, b) => b.points - a.points);
-        const maxPoints = sorted[0]?.points ?? 0;
 
         return (
             <div
@@ -103,7 +110,7 @@ export const PredictionGroupShareCard = forwardRef<HTMLDivElement, Props>(
                 }}>
                     {sorted.map((pred, i) => {
                         const color = getAvatarColor(pred.userName);
-                        const medal = MEDALS[i] ?? null;
+                        const medal = getMedal(sorted, i);
                         const label = pred.isCurrentUser ? "TÚ" : getFirstName(pred.userName);
 
                         return (
@@ -142,7 +149,7 @@ export const PredictionGroupShareCard = forwardRef<HTMLDivElement, Props>(
                                     }}>
                                         {getInitial(pred.userName)}
                                     </div>
-                                    {medal && (
+                                    {medal !== "" && (
                                         <span style={{ position: "absolute", top: -5, right: -5, fontSize: 11, lineHeight: 1 }}>
                                             {medal}
                                         </span>

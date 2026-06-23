@@ -11,7 +11,15 @@ type Props = {
     leaderboard: LeaderboardRow[];
 };
 
-const RANK_MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+const MEDALS: Record<number, string> = { 0: "🥇", 1: "🥈", 2: "🥉" };
+
+function getMedal(leaderboard: LeaderboardRow[], index: number): string | null {
+    const pts = leaderboard[index].points;
+    if (pts === 0) return null;
+    if (leaderboard[index + 1]?.points === pts) return null; // tied with next
+    if (index > 0 && leaderboard[index - 1]?.points === pts) return null; // tied with prev
+    return MEDALS[index] ?? null;
+}
 
 export function LeaderboardTable({ leaderboard }: Props) {
     const [selectedRow, setSelectedRow] = useState<{ row: LeaderboardRow; rank: number } | null>(null);
@@ -34,7 +42,7 @@ export function LeaderboardTable({ leaderboard }: Props) {
                     <TableBody>
                         {leaderboard.map((row, index) => {
                             const rank = index + 1;
-                            const medal = RANK_MEDAL[rank];
+                            const medal = getMedal(leaderboard, index);
                             const unlockedCount = evaluateAchievements(row).filter((a) => a.unlocked).length;
                             const hasStreak = row.currentStreak >= 3;
 
