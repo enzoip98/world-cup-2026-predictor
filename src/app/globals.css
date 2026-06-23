@@ -128,3 +128,42 @@
     @apply font-sans;
   }
 }
+
+/* ponytail: automatic dark-mode mapper utility overrides, no-boilerplate mapping of existing tailwind classes to semantic variables */
+.dark {
+  color-scheme: dark;
+}
+
+.dark .bg-white {
+  background-color: var(--card) !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: var(--background) !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--muted) !important;
+}
+
+.dark .bg-gray-200 {
+  background-color: oklch(0.269 0 0) !important;
+}
+
+.dark .text-gray-950,
+.dark .text-gray-900,
+.dark .text-gray-800 {
+  color: var(--foreground) !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-600,
+.dark .text-gray-500 {
+  color: var(--muted-foreground) !important;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--border) !important;
+}

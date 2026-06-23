@@ -55,6 +55,28 @@ export default function Home() {
 
   const { appUser, loadingAuth, isAdmin } = useAuth();
 
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const isThemeDark = document.documentElement.classList.contains("dark");
+    requestAnimationFrame(() => {
+      setIsDark(isThemeDark);
+    });
+  }, []);
+
+  const toggleDarkMode = () => {
+    const root = document.documentElement;
+    if (root.classList.contains("dark")) {
+      root.classList.remove("dark");
+      localStorage.theme = "light";
+      setIsDark(false);
+    } else {
+      root.classList.add("dark");
+      localStorage.theme = "dark";
+      setIsDark(true);
+    }
+  };
+
   const primaryTabs: TabItem[] = [
     { id: "matches", label: "Partidos" },
     { id: "my_predictions", label: "Mis pronósticos" },
@@ -633,24 +655,43 @@ export default function Home() {
 
       <div className="absolute top-5 left-0 right-0 px-4">
         <div className="relative flex h-11 items-center justify-center">
-          <p className="text-center font-semibold">
+          <p className="text-center font-semibold text-gray-950 dark:text-zinc-50">
             Hola, {appUser.name}
           </p>
 
-          <button
-            onClick={logout}
-            className="group absolute right-0 flex h-11 w-11 items-center justify-start overflow-hidden rounded-full bg-red-600 shadow-lg transition-all duration-200 hover:w-32 hover:rounded-lg active:translate-x-1 active:translate-y-1"
-          >
-            <div className="flex w-full items-center justify-center transition-all duration-300 group-hover:justify-start group-hover:px-3">
-              <svg className="h-4 w-4" viewBox="0 0 512 512" fill="white">
-                <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z" />
-              </svg>
-            </div>
+          <div className="absolute right-0 flex items-center gap-2 h-11">
+            <button
+              onClick={toggleDarkMode}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-zinc-700 shadow-lg transition-all duration-200 active:translate-y-0.5 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer"
+              title="Cambiar tema"
+            >
+              {isDark ? (
+                <svg className="h-5 w-5 text-yellow-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                </svg>
+              )}
+            </button>
 
-            <div className="absolute right-5 translate-x-full text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-              Cerrar sesión
-            </div>
-          </button>
+            <button
+              onClick={logout}
+              className="group flex h-11 w-11 items-center justify-start overflow-hidden rounded-full bg-red-600 shadow-lg transition-all duration-200 hover:w-32 hover:rounded-lg active:translate-x-1 active:translate-y-1 cursor-pointer"
+            >
+              <div className="flex w-full items-center justify-center transition-all duration-300 group-hover:justify-start group-hover:px-3">
+                <svg className="h-4 w-4" viewBox="0 0 512 512" fill="white">
+                  <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z" />
+                </svg>
+              </div>
+
+              <div className="absolute right-5 translate-x-full text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+                Cerrar sesión
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
