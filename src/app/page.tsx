@@ -634,8 +634,8 @@ export default function Home() {
       }
 
       <div className="absolute top-5 left-0 right-0 px-4">
-        <div className="relative flex h-11 items-center justify-center">
-          <p className="text-center font-semibold dark:text-gray-100">
+        <div className="relative flex h-11 items-center">
+          <p className="font-semibold dark:text-gray-100 pr-24 truncate">
             Hola, {appUser.name}
           </p>
 
