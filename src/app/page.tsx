@@ -13,6 +13,7 @@ import { getMatchStatus } from "@/utils/matchstatus";
 import { AuthView } from "@/components/AuthView";
 import { logout } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { JoinPartyView } from "@/components/JoinPartyView";
 import { savePredictionToFirebase, saveSpecialPredictionField, SpecialPredictionsMap, StartedMatchPredictionsMap, subscribeToMyPredictions, subscribeToPartySpecialPredictions, subscribeToStartedMatchPredictions } from "@/lib/predictions";
@@ -54,6 +55,7 @@ export default function Home() {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const { appUser, loadingAuth, isAdmin } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const primaryTabs: TabItem[] = [
     { id: "matches", label: "Partidos" },
@@ -624,7 +626,7 @@ export default function Home() {
 
 
   return (
-    <main className="min-h-screen bg-gray-50 px-5 py-8 relative">
+    <main className="min-h-screen bg-background px-5 py-8 relative">
 
       {(isSavingPrediction || isSavingResult || isSavingAttendance || isSavingWatchParty
         || isSavingAdmin || isSavingSpecialPrediction || isSavingSpecialResult) &&
@@ -633,9 +635,25 @@ export default function Home() {
 
       <div className="absolute top-5 left-0 right-0 px-4">
         <div className="relative flex h-11 items-center justify-center">
-          <p className="text-center font-semibold">
+          <p className="text-center font-semibold dark:text-gray-100">
             Hola, {appUser.name}
           </p>
+
+          <button
+            onClick={toggleTheme}
+            aria-label="Cambiar tema"
+            className="absolute right-14 flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+          >
+            {theme === "dark" ? (
+              <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 12 18ZM7.166 17.834a.75.75 0 0 0-1.06 1.06l1.59 1.591a.75.75 0 1 0 1.061-1.06l-1.591-1.591ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25A.75.75 0 0 1 6 12ZM6.166 6.166a.75.75 0 0 0 1.06 1.06l1.591-1.59a.75.75 0 1 0-1.06-1.061L6.166 6.166Z" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                <path fillRule="evenodd" d="M9.528 1.718a.75.75 0 0 1 .162.819A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.463-.69.75.75 0 0 1 .981.98 10.503 10.503 0 0 1-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 0 1 .818.162Z" clipRule="evenodd" />
+              </svg>
+            )}
+          </button>
 
           <button
             onClick={logout}
@@ -660,24 +678,24 @@ export default function Home() {
             Mundial 2026
           </p>
 
-          <h1 className="mt-2 text-3xl font-black text-gray-950 md:text-5xl">
+          <h1 className="mt-2 text-3xl font-black text-gray-950 dark:text-gray-50 md:text-5xl">
             {party?.name}
           </h1>
 
-          <p className="mt-3 max-w-2xl text-gray-600">
+          <p className="mt-3 max-w-2xl text-gray-600 dark:text-gray-400">
             Confirmen asistencia, propongan casa y vayan metiendo sus pronósticos ⚽
           </p>
         </div>
 
         <div className="space-y-3">
-          <div className="grid grid-cols-3 rounded-3xl bg-white p-1 shadow-sm">
+          <div className="grid grid-cols-3 rounded-3xl bg-white dark:bg-gray-800 p-1 shadow-sm">
             {primaryTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-500"
+                  ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900"
+                  : "text-gray-500 dark:text-gray-400"
                   }`}
               >
                 {tab.label}
@@ -687,7 +705,7 @@ export default function Home() {
 
           {secondaryTabs.length > 0 && (
             <div
-              className={`grid rounded-3xl bg-white p-1 shadow-sm ${secondaryTabs.length === 1
+              className={`grid rounded-3xl bg-white dark:bg-gray-800 p-1 shadow-sm ${secondaryTabs.length === 1
                 ? "grid-cols-1"
                 : "grid-cols-2"
                 }`}
@@ -697,8 +715,8 @@ export default function Home() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`rounded-2xl px-3 py-3 text-sm font-bold transition ${activeTab === tab.id
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500"
+                    ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900"
+                    : "text-gray-500 dark:text-gray-400"
                     }`}
                 >
                   {tab.label}
@@ -711,11 +729,11 @@ export default function Home() {
         {activeTab === "matches" && (
           <section className="my-4 space-y-6">
             <div>
-              <h2 className="text-xl font-black text-gray-950">
+              <h2 className="text-xl font-black text-gray-950 dark:text-gray-50">
                 Todos los partidos
               </h2>
 
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 Revisa el calendario completo y mete tus pronósticos.
               </p>
             </div>
@@ -733,8 +751,8 @@ export default function Home() {
                   key={filter.key}
                   onClick={() => setMatchFilter(filter.key as typeof matchFilter)}
                   className={`rounded-full px-4 py-2 text-sm font-bold transition ${matchFilter === filter.key
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-600 shadow-sm"
+                    ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900"
+                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 shadow-sm"
                     }`}
                 >
                   {filter.label}
@@ -743,18 +761,18 @@ export default function Home() {
             </div>
 
             {Object.entries(matchesByDate).length === 0 ? (
-              <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
-                <p className="font-bold text-gray-900">
+              <div className="rounded-3xl bg-white dark:bg-gray-800 p-6 text-center shadow-sm">
+                <p className="font-bold text-gray-900 dark:text-gray-100">
                   No hay partidos para este filtro.
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Prueba seleccionando otra opción.
                 </p>
               </div>
             ) : (
               groupedMatches.map(([date, dateMatches]) => (
                 <div key={date} className="space-y-3">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-gray-500">
+                  <h3 className="text-sm font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     {formatPeruDate(dateMatches[0].kickoff)}
                   </h3>
 

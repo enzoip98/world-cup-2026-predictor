@@ -144,7 +144,7 @@ export function PredictionGroup({
         )}
 
         <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 xl:grid-cols-3">
-            <h3 className="px-1 text-base font-black text-gray-900">
+            <h3 className="px-1 text-base font-black text-gray-900 dark:text-gray-50">
                 {title}
             </h3>
 
@@ -167,13 +167,13 @@ export function PredictionGroup({
                     <article
                         key={match.id}
                         onClick={() => onSelect(match)}
-                        className={`cursor-pointer rounded-3xl p-4 shadow-lg ${mode === "finished" ? "bg-teal-50" : "bg-pink-50"
+                        className={`cursor-pointer rounded-3xl p-4 shadow-lg ${mode === "finished" ? "bg-teal-50 dark:bg-teal-950/40 dark:shadow-emerald-950 dark:shadow-sm" : "bg-pink-50 dark:bg-pink-950/40 dark:shadow-pink-950 dark:shadow-sm"
                             }`}
                     >
                         <div className="my-1 flex items-center justify-between gap-3">
 
                             {result?.status !== "finished" &&
-                                <p className="text-xs font-bold text-gray-400">
+                                <p className="text-xs font-bold text-gray-400 dark:text-gray-500">
                                     {formatMatchDate(match.kickoff)}
                                 </p>
                             }
@@ -191,7 +191,7 @@ export function PredictionGroup({
                         </div>
 
                         <div className="flex flex-row items-center justify-between">
-                            <p className="text-center w-20 shrink-0 text-[9px] font-light capitalize leading-tight tracking-wide text-gray-500">
+                            <p className="text-center w-20 shrink-0 text-[9px] font-light capitalize leading-tight tracking-wide text-gray-500 dark:text-gray-400">
                                 Tu pronóstico
                             </p>
                             <div className="w-full">
@@ -218,7 +218,7 @@ export function PredictionGroup({
 
                         {result?.status === "finished" && (
                             <div className="flex flex-row items-center justify-between">
-                                <p className="text-center w-20 shrink-0 text-[11px] font-semibold capitalize leading-tight tracking-wide text-gray-900">
+                                <p className="text-center w-20 shrink-0 text-[11px] font-semibold capitalize leading-tight tracking-wide text-gray-900 dark:text-gray-100">
                                     Resultado
                                 </p>
                                 <div className="w-full">
@@ -234,11 +234,11 @@ export function PredictionGroup({
 
                         {matchStarted && (
                             <Accordion
-                                className="mt-4 rounded-2xl bg-white/70 px-4"
+                                className="mt-4 rounded-2xl bg-white/70 dark:bg-white/10 px-4"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <AccordionItem value="details" className="border-none">
-                                    <AccordionTrigger className="py-3 text-sm font-black text-gray-700 hover:no-underline">
+                                    <AccordionTrigger className="py-3 text-sm font-black text-gray-700 dark:text-gray-200 hover:no-underline">
                                         Ver pronósticos de todos
                                     </AccordionTrigger>
 
@@ -253,7 +253,7 @@ export function PredictionGroup({
 
                                                 if (predictionsToShow.length === 0) {
                                                     return (
-                                                        <p className="py-2 text-center text-xs font-semibold text-gray-400">
+                                                        <p className="py-2 text-center text-xs font-semibold text-gray-400 dark:text-gray-500">
                                                             Todavía no hay pronósticos para mostrar.
                                                         </p>
                                                     );
@@ -296,7 +296,7 @@ export function PredictionGroup({
                                                     return (
                                                         <div
                                                             key={user.uid}
-                                                            className="rounded-2xl bg-gray-50 px-3 py-2 text-sm space-y-1"
+                                                            className="rounded-2xl bg-gray-50 dark:bg-white/10 px-3 py-2 text-sm space-y-1"
                                                         >
                                                             <div className="flex items-center gap-1">
                                                                 <div className={`${isMyRow ? "w-[38%]" : "w-[45%]"} flex items-center gap-2 min-w-0`}>
@@ -310,12 +310,12 @@ export function PredictionGroup({
                                                                         </AvatarFallback>
                                                                     </Avatar>
 
-                                                                    <span className="truncate font-semibold text-gray-800 text-[11px]">
+                                                                    <span className="truncate font-semibold text-gray-800 dark:text-gray-100 text-[11px]">
                                                                         {"userName" in userPrediction ? userPrediction.userName : user.name}
                                                                     </span>
                                                                 </div>
 
-                                                                <h1 className={`${isMyRow ? "w-[27%]" : "w-[30%]"} text-sm text-gray-700 font-bold text-center flex items-center justify-center gap-1`}>
+                                                                <h1 className={`${isMyRow ? "w-[27%]" : "w-[30%]"} text-sm text-gray-700 dark:text-gray-200 font-bold text-center flex items-center justify-center gap-1`}>
                                                                     {userPrediction.homeScore}-{userPrediction.awayScore}
                                                                     {"jokerActivated" in userPrediction && userPrediction.jokerActivated && (
                                                                         <span title="Joker activado">🃏</span>
@@ -374,9 +374,9 @@ export function PredictionGroup({
                                                             </div>
 
                                                             {isKnockout && qualifiedTeam && (
-                                                                <div className="flex items-center gap-2 pl-1 text-[10px] text-gray-500 font-medium">
+                                                                <div className="flex items-center gap-2 pl-1 text-[10px] text-gray-500 dark:text-gray-400 font-medium">
                                                                     <span>Clasifica:</span>
-                                                                    <span className="font-bold text-gray-700">{qualifiedTeam.name}</span>
+                                                                    <span className="font-bold text-gray-700 dark:text-gray-200">{qualifiedTeam.name}</span>
                                                                     {isDraw && penaltiesIfDraw !== undefined && (
                                                                         <>
                                                                             <span className="text-gray-300">·</span>

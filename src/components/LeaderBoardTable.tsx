@@ -26,7 +26,7 @@ export function LeaderboardTable({ leaderboard }: Props) {
 
     return (
         <>
-            <div className="rounded-xl border bg-white my-4 overflow-x-auto">
+            <div className="rounded-xl border dark:border-gray-700 bg-white dark:bg-gray-800 my-4 overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -49,10 +49,10 @@ export function LeaderboardTable({ leaderboard }: Props) {
                             return (
                                 <TableRow
                                     key={row.userId}
-                                    className="cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 transition-colors"
                                     onClick={() => setSelectedRow({ row, rank })}
                                 >
-                                    <TableCell className="font-bold text-gray-500">
+                                    <TableCell className="font-bold text-gray-500 dark:text-gray-400">
                                         {medal ?? rank}
                                     </TableCell>
 
@@ -70,7 +70,7 @@ export function LeaderboardTable({ leaderboard }: Props) {
 
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-1">
-                                                    <span className="font-bold text-gray-900 truncate">
+                                                    <span className="font-bold text-gray-900 dark:text-gray-100 truncate">
                                                         {row.name}
                                                     </span>
                                                     {hasStreak && (
@@ -86,19 +86,19 @@ export function LeaderboardTable({ leaderboard }: Props) {
                                         </div>
                                     </TableCell>
 
-                                    <TableCell className="text-center font-black text-gray-950">
+                                    <TableCell className="text-center font-black text-gray-950 dark:text-gray-50">
                                         {row.points}
                                     </TableCell>
 
-                                    <TableCell className="text-center text-sm font-semibold text-gray-700">
+                                    <TableCell className="text-center text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         {row.exactScores}
                                     </TableCell>
 
-                                    <TableCell className="text-center text-sm font-semibold text-gray-700">
+                                    <TableCell className="text-center text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         {row.correctResults}
                                     </TableCell>
 
-                                    <TableCell className="text-center text-sm font-semibold text-gray-400">
+                                    <TableCell className="text-center text-sm font-semibold text-gray-400 dark:text-gray-500">
                                         {row.failed}
                                     </TableCell>
                                 </TableRow>
@@ -108,7 +108,7 @@ export function LeaderboardTable({ leaderboard }: Props) {
                 </Table>
             </div>
 
-            <p className="text-center text-xs text-gray-400 -mt-2">
+            <p className="text-center text-xs text-gray-400 dark:text-gray-500 -mt-2">
                 Toca un jugador para ver su perfil completo
             </p>
 

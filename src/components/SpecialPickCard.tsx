@@ -22,14 +22,14 @@ export function SpecialPickCard({
             disabled={disabled}
             onClick={onClick}
             className={`min-h-37.5 shadow-lg rounded-4xl border p-3 text-left transition ${disabled
-                ? "border-gray-100 bg-gray-50"
-                : "border-gray-100 bg-white active:scale-[0.98]"
+                ? "border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700"
+                : "border-gray-100 dark:border-gray-600 bg-white dark:bg-gray-700 active:scale-[0.98]"
                 }`}
         >
             <div className="flex h-full flex-col justify-evenly gap-3">
                 <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                        <p className="text-[11px] font-light capitalize leading-tight tracking-wide text-gray-900">
+                        <p className="text-[11px] font-light capitalize leading-tight tracking-wide text-gray-900 dark:text-gray-200">
                             <span className="mr-1">{emoji}</span>
                             {title}
                         </p>
@@ -39,9 +39,9 @@ export function SpecialPickCard({
                         </span>
                     </div>
 
-                    <div className="text-sm font-black leading-snug text-gray-900">
+                    <div className="text-sm font-black leading-snug text-gray-900 dark:text-gray-50">
                         {value ?? (
-                            <span className="text-xs font-bold text-gray-500">
+                            <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
                                 {emptyText}
                             </span>
                         )}

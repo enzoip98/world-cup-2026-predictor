@@ -11,7 +11,7 @@ export function ScoreResultSection({
     result: MatchResult;
 }) {
     return (
-        <div className="my-2 grid grid-cols-[1fr_auto_1fr] items-center gap-1 text-2xl font-black text-gray-950">
+        <div className="my-2 grid grid-cols-[1fr_auto_1fr] items-center gap-1 text-2xl font-black text-gray-950 dark:text-gray-50">
             <div className="flex min-w-0 items-center justify-end gap-1">
                 <span className="w-12 text-center text-lg font-bold">
                     {homeTeam.fifaCode}

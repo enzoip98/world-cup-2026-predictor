@@ -12,7 +12,7 @@ export function ScoreInput({ homeTeam, awayTeam, homeScore, setHomeScore, awaySc
     return (<>
         <div className="flex items-center justify-center gap-3">
             <div className="flex flex-1 flex-col items-center gap-2">
-                <span className="flex flex-row gap-1 text-sm font-semibold text-gray-700">
+                <span className="flex flex-row gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {homeTeam.fifaCode}<img
                         src={`https://flagcdn.com/w40/${homeTeam.iso2.toLowerCase()}.png`}
                         alt={homeTeam.nameEs}
@@ -25,14 +25,14 @@ export function ScoreInput({ homeTeam, awayTeam, homeScore, setHomeScore, awaySc
                     min="0"
                     value={homeScore}
                     onChange={(event) => setHomeScore(event.target.value)}
-                    className="h-14 w-full rounded-2xl border bg-white text-center text-2xl font-black outline-none focus:ring-2 focus:ring-gray-900"
+                    className="h-14 w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-center text-2xl font-black text-gray-900 dark:text-gray-50 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-violet-500"
                 />
             </div>
 
             <span className="mt-7 text-xl font-black text-gray-400">-</span>
 
             <div className="flex flex-1 flex-col items-center gap-2">
-                <span className="flex flex-row gap-1 text-sm font-semibold text-gray-700">
+                <span className="flex flex-row gap-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {awayTeam.fifaCode}<img
                         src={`https://flagcdn.com/w40/${awayTeam.iso2.toLowerCase()}.png`}
                         alt={awayTeam.nameEs}
@@ -45,7 +45,7 @@ export function ScoreInput({ homeTeam, awayTeam, homeScore, setHomeScore, awaySc
                     min="0"
                     value={awayScore}
                     onChange={(event) => setAwayScore(event.target.value)}
-                    className="h-14 w-full rounded-2xl border bg-white text-center text-2xl font-black outline-none focus:ring-2 focus:ring-gray-900"
+                    className="h-14 w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-center text-2xl font-black text-gray-900 dark:text-gray-50 outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-violet-500"
                 />
             </div>
         </div>

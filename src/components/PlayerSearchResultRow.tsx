@@ -28,12 +28,12 @@ export function PlayerSearchResultRow({
         <button
             disabled={isSaving}
             onClick={() => onSelectPlayer(player.id)}
-            className="flex w-full items-center gap-3 rounded-2xl bg-gray-50 p-4 text-left transition active:scale-[0.99] disabled:opacity-50"
+            className="flex w-full items-center gap-3 rounded-2xl bg-gray-50 dark:bg-gray-700 p-4 text-left transition active:scale-[0.99] disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-gray-600"
         >
             {team && <CountryFlag homeTeam={team} />}
 
             <div className="min-w-0 flex-1">
-                <p className="truncate capitalize text-sm font-black text-gray-900">
+                <p className="truncate capitalize text-sm font-black text-gray-900 dark:text-gray-100">
                     {player.fullName.toLowerCase()}
                 </p>
 

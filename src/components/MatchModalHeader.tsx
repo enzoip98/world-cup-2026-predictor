@@ -15,12 +15,12 @@ export function MatchModalHeader({
                     alt={homeTeam.nameEs}
                     className="h-5 w-7 rounded-sm object-cover shadow-sm"
                 />
-                <h2 className="text-xl font-black text-gray-950">
+                <h2 className="text-xl font-black text-gray-950 dark:text-gray-50">
                     {homeTeam.nameEs}
                 </h2>
             </div>
 
-            <span className="text-lg font-bold text-gray-600">
+            <span className="text-lg font-bold text-gray-600 dark:text-gray-400">
                 VS
             </span>
 
@@ -30,7 +30,7 @@ export function MatchModalHeader({
                     alt={awayTeam.nameEs}
                     className="h-5 w-7 rounded-sm object-cover shadow-sm"
                 />
-                <h2 className="text-xl font-black text-gray-950">
+                <h2 className="text-xl font-black text-gray-950 dark:text-gray-50">
                     {awayTeam.nameEs}
                 </h2>
             </div>

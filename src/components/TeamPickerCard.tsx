@@ -17,8 +17,8 @@ export function TeamPickerCard({
             disabled={isDisabled || isSaving}
             onClick={() => onSelectTeam(team.id)}
             className={`rounded-3xl border p-4 text-left transition active:scale-[0.98] ${isDisabled
-                ? "border-gray-100 bg-gray-100 opacity-50"
-                : "border-gray-100 bg-gray-50 hover:bg-gray-100"
+                ? "border-gray-100 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 opacity-50"
+                : "border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
                 }`}
         >
             <div className="mb-3 flex items-center justify-between">
@@ -31,11 +31,11 @@ export function TeamPickerCard({
                 )}
             </div>
 
-            <p className="line-clamp-2 text-sm font-black leading-5 text-gray-900">
+            <p className="line-clamp-2 text-sm font-black leading-5 text-gray-900 dark:text-gray-100">
                 {team.nameEs}
             </p>
 
-            <p className="mt-1 text-xs font-bold text-gray-400">
+            <p className="mt-1 text-xs font-bold text-gray-400 dark:text-gray-500">
                 {team.fifaCode}
             </p>
         </button>

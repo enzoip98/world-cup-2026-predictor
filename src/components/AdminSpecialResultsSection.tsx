@@ -84,24 +84,24 @@ export function AdminSpecialResultsSection({
     return (
         <>
             <section className="space-y-5">
-                <div className="rounded-3xl bg-white p-5 shadow-sm">
+                <div className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm">
                     <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-lg font-black text-gray-950">
+                        <h3 className="text-lg font-black text-gray-950 dark:text-gray-50">
                             🏁 Resultados finales
                         </h3>
 
-                        <span className="rounded-full bg-gray-900 px-3 py-1 text-xs font-black text-white">
+                        <span className="rounded-full bg-gray-900 dark:bg-gray-100 px-3 py-1 text-xs font-black text-white dark:text-gray-900">
                             50 pts
                         </span>
                     </div>
 
-                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                    <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">
                         Registra los resultados especiales oficiales. Estos valores se usan
                         para sumar los puntos extra de la tabla.
                     </p>
                 </div>
 
-                <div className="rounded-3xl bg-white p-5 shadow-sm">
+                <div className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm">
                     <div className="space-y-3">
                         <AdminFinalResultCard
                             title="Campeón"
@@ -228,29 +228,29 @@ function AdminFinalResultCard({
         <button
             disabled={isSaving}
             onClick={onClick}
-            className="w-full rounded-3xl border border-gray-100 bg-gray-50 px-5 py-4 text-left transition active:scale-[0.99] disabled:opacity-50"
+            className="w-full rounded-3xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 px-5 py-4 text-left transition active:scale-[0.99] disabled:opacity-50"
         >
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-black uppercase tracking-wide text-gray-900">
+                        <p className="text-sm font-black uppercase tracking-wide text-gray-900 dark:text-gray-100">
                             {emoji} {title}
                         </p>
 
-                        <span className="rounded-full bg-white px-2 py-1 text-[11px] font-black text-gray-500">
+                        <span className="rounded-full bg-white dark:bg-gray-600 px-2 py-1 text-[11px] font-black text-gray-500 dark:text-gray-300">
                             +{points} pts
                         </span>
                     </div>
 
-                    <div className="mt-3 text-base font-black text-gray-900">
-                        {value ?? <span className="text-gray-400">{emptyText}</span>}
+                    <div className="mt-3 text-base font-black text-gray-900 dark:text-gray-100">
+                        {value ?? <span className="text-gray-400 dark:text-gray-500">{emptyText}</span>}
                     </div>
                 </div>
 
                 <span
                     className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${value
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-200 text-gray-500"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                        : "bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300"
                         }`}
                 >
                     {value ? "Registrado" : "Pendiente"}

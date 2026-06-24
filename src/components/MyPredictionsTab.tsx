@@ -90,17 +90,17 @@ export function MyPredictionsTab({
             </section>
 
             {predictedMatches.length === 0 ?
-                <section className="rounded-3xl bg-white px-6 py-10 text-center shadow-sm my-5">
+                <section className="rounded-3xl bg-white dark:bg-gray-800 px-6 py-10 text-center shadow-sm my-5">
 
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-4xl">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-4xl">
                         📝
                     </div>
 
-                    <h2 className="text-xl font-black text-gray-900">
+                    <h2 className="text-xl font-black text-gray-900 dark:text-gray-50">
                         Mis pronósticos
                     </h2>
 
-                    <p className="mt-3 text-sm leading-6 text-gray-500">
+                    <p className="mt-3 text-sm leading-6 text-gray-500 dark:text-gray-400">
                         Todavía no hiciste ningún pronóstico.
                         <br />
                         Ve a la pestaña Partidos y registra tus marcadores antes de que
@@ -116,10 +116,10 @@ export function MyPredictionsTab({
                 </section>
                 : <section className="space-y-5 my-5">
                     <div>
-                        <h2 className="text-2xl font-black text-gray-900">
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-gray-50">
                             Mis pronósticos
                         </h2>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             Revisa los marcadores que ya registraste.
                         </p>
                     </div>
@@ -178,9 +178,9 @@ function SummaryCard({
     value: number;
 }) {
     return (
-        <div className="rounded-3xl bg-white p-4 text-center shadow-sm">
-            <p className="text-2xl font-black text-gray-900">{value}</p>
-            <p className="mt-1 text-xs font-bold text-gray-500">{label}</p>
+        <div className="rounded-3xl bg-white dark:bg-gray-800 p-4 text-center shadow-sm">
+            <p className="text-2xl font-black text-gray-900 dark:text-gray-50">{value}</p>
+            <p className="mt-1 text-xs font-bold text-gray-500 dark:text-gray-400">{label}</p>
         </div>
     );
 }

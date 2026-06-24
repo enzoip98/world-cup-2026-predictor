@@ -219,14 +219,14 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             onClick={onClose}>
             <div
-                className="relative w-full max-w-md max-h-[80vh] 
-                overflow-y-auto rounded-3xl bg-white px-6 shadow-xl"
+                className="relative w-full max-w-md max-h-[80vh]
+                overflow-y-auto rounded-3xl bg-white dark:bg-gray-800 px-6 shadow-xl"
                 onClick={(event) => event.stopPropagation()}>
 
-                <div className="bg-white my-4 flex flex-col items-center justify-center gap-2">
+                <div className="bg-white dark:bg-gray-800 my-4 flex flex-col items-center justify-center gap-2">
                     <button
                         onClick={onClose}
-                        className="absolute right-1 top-1 rounded-full bg-gray-200 px-3 m-1 py-1 text-md font-bold text-gray-600 hover:bg-gray-200">
+                        className="absolute right-1 top-1 rounded-full bg-gray-200 dark:bg-gray-700 px-3 m-1 py-1 text-md font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
                         ×
                     </button>
                     {homeTeam && awayTeam && (
@@ -235,19 +235,19 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                 </div>
 
                 <div>
-                    <div className="mt-6 rounded-3xl bg-gray-50 p-5 space-y-3">
-                        <p className="flex items-center gap-3 text-base text-gray-700">
+                    <div className="mt-6 rounded-3xl bg-gray-50 dark:bg-gray-700 p-5 space-y-3 shadow-lg">
+                        <p className="flex items-center gap-3 text-base text-gray-700 dark:text-gray-200">
                             <span>📅</span>
                             <span><strong>Fecha:</strong> {formatDate(match.date)}</span>
                         </p>
 
-                        <p className="flex items-center gap-3 text-base text-gray-700">
+                        <p className="flex items-center gap-3 text-base text-gray-700 dark:text-gray-200">
                             <span>🕗</span>
                             <span><strong>Hora:</strong> {formatTime(match.time)}</span>
                         </p>
 
                         {isWatchParty && (
-                            <p className="flex items-center gap-3 text-base text-gray-700">
+                            <p className="flex items-center gap-3 text-base text-gray-700 dark:text-gray-200">
                                 <span>🏠</span>
                                 <span><strong>Se verá en:</strong> {`Casa de ${watchParty?.hostName.split(" ")[0]}`}</span>
                             </p>
@@ -255,8 +255,8 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     </div>
 
                     {!isFinished && isAdmin && isWatchParty && (
-                        <details className="mt-4 rounded-3xl bg-gray-50 p-5">
-                            <summary className="cursor-pointer font-black text-gray-900">
+                        <details className="mt-4 rounded-3xl bg-gray-50 dark:bg-gray-700 p-5">
+                            <summary className="cursor-pointer font-black text-gray-900 dark:text-gray-100">
                                 Opciones de administrador
                             </summary>
 
@@ -355,7 +355,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                         />}
 
                         {isFinished && <div className="mt-3 flex items-center justify-between">
-                            <p className="text-sm font-semibold text-gray-900">Tu asistencia</p>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-200">Tu asistencia</p>
                             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
                                 {attendanceStatus
                                     ? finishedAttendanceOptions.find((option) => option.value === attendanceStatus)?.label
@@ -363,21 +363,21 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                             </span>
                         </div>}
 
-                        <div className="mt-6 rounded-2xl bg-gray-50 p-4">
+                        <div className="mt-6 rounded-2xl bg-gray-50 dark:bg-gray-700 p-4">
 
                             {((attendees.length === 0 && notAttendees.length === 0) && !isFinished) ? (
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     Todavía no hay asistentes registrados.
                                 </p>
                             ) : (<>
                                 {attendees.length != 0 && <div className="my-3 space-y-2">
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                         {!isFinished ? `Asistentes (${attendees.length})` : `Asistieron (${attendees.length})`}
                                     </p>
                                     {attendees.map((user) => (
                                         <div
                                             key={user.uid}
-                                            className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                                            className="flex items-center gap-3 rounded-xl bg-white dark:bg-gray-600 px-3 py-2"
                                         >
                                             <Avatar>
                                                 <AvatarImage
@@ -390,10 +390,10 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             </Avatar>
 
                                             <div>
-                                                <p className="text-sm font-medium text-gray-900">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {user.name.trim().split(/\s+/).slice(0, 2).join(" ")}
                                                     {user.uid === appUser?.uid && (
-                                                        <span className="ml-2 text-xs text-blue-600">(Tú)</span>
+                                                        <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">(Tú)</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -402,13 +402,13 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                 </div>}
 
                                 {notAttendees.length != 0 && <div className="my-3 space-y-2">
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                         {!isFinished ? `No irán (${notAttendees.length})` : `No fueron (${notAttendees.length})`}
                                     </p>
                                     {notAttendees.map((user) => (
                                         <div
                                             key={user.uid}
-                                            className="flex items-center gap-3 rounded-xl bg-white px-3 py-2"
+                                            className="flex items-center gap-3 rounded-xl bg-white dark:bg-gray-600 px-3 py-2"
                                         >
                                             <Avatar>
                                                 <AvatarImage
@@ -421,10 +421,10 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             </Avatar>
 
                                             <div>
-                                                <p className="text-sm font-medium text-gray-900">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {user.name.trim().split(/\s+/).slice(0, 2).join(" ")}
                                                     {user.uid === appUser?.uid && (
-                                                        <span className="ml-2 text-xs text-blue-600">(Tú)</span>
+                                                        <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">(Tú)</span>
                                                     )}
                                                 </p>
                                             </div>
@@ -438,12 +438,12 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     )}
 
                     {!isFinished && isAdmin && !isWatchParty && !isPromotingWatchParty && (
-                        <section className="mt-6 rounded-3xl bg-emerald-50 p-6">
-                            <p className="text-lg font-black text-gray-950">
+                        <div className="mt-6 rounded-3xl bg-emerald-50 dark:bg-emerald-950/40 p-6 shadow-lg">
+                            <p className="text-lg font-black text-gray-950 dark:text-gray-50">
                                 ¿Veremos este partido juntos?
                             </p>
 
-                            <p className="mt-2 text-sm font-medium text-gray-600">
+                            <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                                 Elige una casa y activa la asistencia para este partido.
                             </p>
 
@@ -453,23 +453,23 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                             >
                                 Proponer junte
                             </button>
-                        </section>
+                        </div>
                     )}
 
                     {!isFinished && isAdmin && !isWatchParty && isPromotingWatchParty && (
-                        <section className="mt-6 rounded-3xl bg-emerald-50 p-6">
-                            <p className="text-lg font-black text-gray-950">
+                        <section className="mt-6 rounded-3xl bg-emerald-50 dark:bg-emerald-950/40 p-6 shadow-lg">
+                            <p className="text-lg font-black text-gray-950 dark:text-gray-50">
                                 Proponer junte
                             </p>
 
-                            <p className="mt-2 text-sm font-medium text-gray-600">
+                            <p className="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">
                                 Selecciona en qué casa se verá este partido.
                             </p>
 
                             <select
                                 value={selectedHostUserId}
                                 onChange={(e) => setSelectedHostUserId(e.target.value)}
-                                className="mt-5 w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 text-base font-bold text-gray-900 outline-none"
+                                className="mt-5 w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-100 px-4 py-4 text-base font-bold text-gray-900 outline-none"
                             >
                                 <option value="">Seleccionar casa</option>
 
@@ -481,11 +481,11 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                             </select>
 
                             {selectedHost && (
-                                <div className="mt-4 rounded-2xl bg-white p-4">
-                                    <p className="text-sm font-semibold text-gray-500">
+                                <div className="mt-4 rounded-2xl bg-white dark:bg-gray-700 p-4">
+                                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">
                                         Casa seleccionada
                                     </p>
-                                    <p className="mt-1 text-base font-black text-gray-950">
+                                    <p className="mt-1 text-base font-black text-gray-950 dark:text-gray-50">
                                         {selectedHouseName}
                                     </p>
                                 </div>
@@ -497,7 +497,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                         setIsPromotingWatchParty(false);
                                         setSelectedHostUserId("");
                                     }}
-                                    className="flex-1 rounded-2xl bg-white py-4 text-base font-black text-gray-700"
+                                    className="flex-1 rounded-2xl bg-white dark:bg-gray-700 dark:text-gray-200 py-4 text-base font-black text-gray-700"
                                 >
                                     Cancelar
                                 </button>
@@ -513,10 +513,10 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                         </section>
                     )}
 
-                    <div className="mt-6 rounded-2xl bg-gray-50 p-5">
+                    <div className="my-6 rounded-2xl bg-gray-50 dark:bg-gray-700 p-5 shadow-lg">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-bold text-gray-950">Pronóstico</p>
+                                <p className="text-sm font-bold text-gray-950 dark:text-gray-100">Pronóstico</p>
                                 {/*{!prediction && !isFinished && canPredict && (<p className="mt-1 text-sm text-gray-500">
                                     Una vez guardado, no podrás cambiarlo.
                                 </p>)}*/}
@@ -530,8 +530,58 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                         </div>
 
                         {prediction && !isPredicting ? (<>
-                            <div className="my-2 rounded-2xl bg-white p-4 text-center shadow-sm">
-                                <p className="text-sm text-gray-500">Tu pronóstico</p>
+                            {isFinished && scoreResult && homeTeam && awayTeam ? (
+                                <div className="my-2 overflow-hidden rounded-2xl shadow-sm">
+                                    {/* Points banner */}
+                                    <div className={`px-4 py-4 text-center ${
+                                        scoreResult.points >= 5
+                                            ? "bg-green-500"
+                                            : scoreResult.points > 0
+                                            ? "bg-yellow-500"
+                                            : "bg-red-500"
+                                    }`}>
+                                        <p className="text-3xl font-black text-white">+{scoreResult.points} pts</p>
+                                        <p className="mt-0.5 text-xs font-semibold text-white/80">
+                                            {scoreResult.points >= 5
+                                                ? "¡Marcador exacto! 🎯"
+                                                : scoreResult.points > 0
+                                                ? "¡Resultado correcto! ✅"
+                                                : "No acertaste ❌"}
+                                        </p>
+                                        {prediction.jokerActivated && (
+                                            <p className="mt-1 text-xs font-black text-white/90">🃏 Joker · puntos x2</p>
+                                        )}
+                                    </div>
+
+                                    {/* Comparison rows */}
+                                    <div className="bg-white dark:bg-gray-600 divide-y divide-gray-100 dark:divide-gray-500">
+                                        <div className="px-4 py-3">
+                                            <p className="mb-1 text-center text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-400">Tu pronóstico</p>
+                                            <ScoreResultSection
+                                                homeTeam={homeTeam}
+                                                awayTeam={awayTeam}
+                                                result={{ matchId: match.id, ...prediction, status: "scheduled" }}
+                                            />
+                                        </div>
+                                        <div className="px-4 py-3">
+                                            <p className="mb-1 text-center text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-400">Resultado oficial</p>
+                                            <ScoreResultSection
+                                                homeTeam={homeTeam}
+                                                awayTeam={awayTeam}
+                                                result={resultMatch}
+                                            />
+                                            {isKnockout && resultMatch?.qualifiedTeamId && (
+                                                <p className="mt-1 text-center text-xs text-gray-500 dark:text-gray-400">
+                                                    Clasificó: <span className="font-bold">{teamsByFifaCode[resultMatch.qualifiedTeamId]?.name}</span>
+                                                    {resultMatch.wentToPenalties && <span className="ml-1">· Con penales</span>}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                            <div className="my-2 rounded-2xl bg-white dark:bg-gray-600 p-4 text-center shadow-sm">
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Tu pronóstico</p>
 
                                 {homeTeam && awayTeam && (
                                     <ScoreResultSection
@@ -543,7 +593,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
 
                                 {prediction.jokerActivated && (
                                     <div className="mt-2 flex justify-center">
-                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-xs font-black text-purple-700">
+                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 dark:bg-purple-900/40 px-3 py-1 text-xs font-black text-purple-700 dark:text-purple-300">
                                             🃏 Joker activado · puntos x2
                                         </span>
                                     </div>
@@ -557,8 +607,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             setJokerActive(prediction.jokerActivated ?? false);
                                             setIsPredicting(true);
                                         }}
-                                        className="mt-4 w-full rounded-2xl bg-yellow-200 px-4 py-3 text-sm font-bold text-black transition
-                                        hover:bg-yellow-400"
+                                        className="mt-4 w-full rounded-2xl bg-yellow-200 px-4 py-3 text-sm font-bold text-black transition hover:bg-yellow-400"
                                     >
                                         Cambiar pronóstico
                                     </button>
@@ -567,22 +616,8 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                 {!canPredict && !isFinished && (
                                     <span className="text-center text-sm text-red-400 font-semibold">El partido ya empezó.</span>
                                 )}
-
-                                {scoreResult && (<><div className="my-3 rounded-2xl">
-                                    <div className="flex items-center justify-center gap-3">
-                                        <p className="text-sm font-bold text-gray-950">Obtuviste</p>
-                                        <div>
-                                            <div className="rounded-xl bg-green-100 p-3">
-                                                <p className="font-bold">
-                                                    {scoreResult.points} puntos
-                                                </p>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div></>)}
                             </div>
-
+                            )}
                         </>)
                             : !isPredicting ? (
                                 !isFinished ? (
@@ -592,11 +627,11 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             className="mt-4 w-full rounded-2xl bg-gray-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-gray-800"
                                         >Pronosticar</button>}
 
-                                        {!canPredict && <p className="mt-4 text-center text-sm text-gray-500">
+                                        {!canPredict && <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                             Este partido ya comenzó y no se puede pronosticar.
                                         </p>}
                                     </>
-                                ) : (<p className="mt-4 text-center text-sm text-gray-500">
+                                ) : (<p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                     El partido ya terminó, no hiciste un pronóstico.
                                 </p>)
                             ) : (!isFinished && <>
@@ -630,38 +665,38 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
 
                                     {/* Knockout extra fields */}
                                     {isKnockout && homeScore !== "" && awayScore !== "" && homeTeam && awayTeam && (
-                                        <div className="mt-4 rounded-2xl bg-white p-4 space-y-4 border border-gray-100">
+                                        <div className="mt-4 rounded-2xl bg-white dark:bg-gray-600 p-4 space-y-4 border border-gray-100 dark:border-gray-500">
                                             <div>
-                                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Quién clasifica?</p>
+                                                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">¿Quién clasifica?</p>
                                                 {predictedDraw ? (
                                                     <div className="flex gap-2">
                                                         <button
                                                             onClick={() => setKnockoutQualified(match.homeTeamId ?? "")}
-                                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutQualified === match.homeTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}
+                                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutQualified === match.homeTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}
                                                         >
                                                             {homeTeam.name}
                                                         </button>
                                                         <button
                                                             onClick={() => setKnockoutQualified(match.awayTeamId ?? "")}
-                                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutQualified === match.awayTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}
+                                                            className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutQualified === match.awayTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}
                                                         >
                                                             {awayTeam.name}
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <p className="text-sm font-semibold text-gray-700">
+                                                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                                                         {knockoutQualified === match.homeTeamId ? homeTeam.name : knockoutQualified === match.awayTeamId ? awayTeam.name : "—"}
-                                                        <span className="ml-2 text-xs text-gray-400">(según tu marcador)</span>
+                                                        <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">(según tu marcador)</span>
                                                     </p>
                                                 )}
                                             </div>
 
                                             {predictedDraw && (
                                                 <div>
-                                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Hay penales?</p>
+                                                    <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">¿Hay penales?</p>
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => setKnockoutPenalties(false)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${!knockoutPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>No</button>
-                                                        <button onClick={() => setKnockoutPenalties(true)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>Sí</button>
+                                                        <button onClick={() => setKnockoutPenalties(false)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${!knockoutPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}>No</button>
+                                                        <button onClick={() => setKnockoutPenalties(true)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${knockoutPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}>Sí</button>
                                                     </div>
                                                 </div>
                                             )}
@@ -708,7 +743,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                                 setKnockoutPenalties(false);
                                                 setJokerActive(false);
                                             }}
-                                            className="flex-1 rounded-2xl bg-gray-200 px-4 py-3 text-sm font-bold text-gray-700"
+                                            className="flex-1 rounded-2xl bg-gray-200 dark:bg-gray-600 px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200"
                                         >
                                             Cancelar
                                         </button>
@@ -810,14 +845,14 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                         </div>
                     )}
 
-                    {isFinished && <>
-                        <div className="my-6 flex justify-center gap-1 flex-col">
-                            <p className="text-xl text-center ps-1 font-bold text-gray-950">Resultado oficial</p>
+                    {isFinished && !prediction && <>
+                        <div className="my-6 flex rounded-2xl justify-center gap-1 flex-col shadow-lg p-2">
+                            <p className="text-xl text-center ps-1 font-bold text-gray-950 dark:text-gray-50">Resultado oficial</p>
                             {homeTeam && awayTeam && (
                                 <ScoreResultSection homeTeam={homeTeam} awayTeam={awayTeam} result={resultMatch} />
                             )}
                             {isKnockout && resultMatch?.qualifiedTeamId && (
-                                <div className="mt-2 text-center text-sm text-gray-600">
+                                <div className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                                     <span className="font-semibold">Clasificó: </span>
                                     {teamsByFifaCode[resultMatch.qualifiedTeamId]?.name ?? resultMatch.qualifiedTeamId}
                                     {resultMatch.wentToPenalties !== undefined && (
@@ -834,29 +869,29 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                     {!isFinished ? (
 
                         !isSavingResult ? (<>
-                            <div className="my-6 rounded-2xl bg-gray-50 p-5">
+                            <div className="my-6 rounded-2xl bg-gray-50 dark:bg-gray-700 p-5 shadow-lg">
                                 <div className="flex items-center justify-start">
                                     <div>
-                                        <p className="text-sm text-center font-bold text-gray-950">Resultado oficial</p>
+                                        <p className="text-sm text-center font-bold text-gray-950 dark:text-gray-100">Resultado oficial</p>
                                     </div>
                                 </div>
 
                                 {appUser.role === "admin" ? <>
                                     <button
                                         onClick={() => setIsSavingResult(true)}
-                                        className="mt-4 w-full rounded-2xl bg-gray-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-gray-800"
+                                        className="mt-4 w-full rounded-2xl bg-violet-600 hover:bg-violet-700 px-4 py-3 text-sm font-bold text-white transition"
                                     >
                                         Registrar resultado
                                     </button>
                                 </> : <>
-                                    <p className="mt-1 text-sm text-gray-500">
+                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                         Aún no se ha registrado el resultado oficial.
                                     </p>
                                 </>}
                             </div></>)
                             :
-                            <div className="mt-6 rounded-2xl bg-gray-50 p-4">
-                                <p className="text-sm mb-3 font-semibold text-gray-900">Registrar resultado</p>
+                            <div className="my-6 rounded-2xl bg-gray-50 dark:bg-gray-700 p-4">
+                                <p className="text-sm mb-3 font-semibold text-gray-900 dark:text-gray-100">Registrar resultado</p>
                                 {homeTeam && awayTeam && (
                                     <ScoreInput
                                         homeTeam={homeTeam}
@@ -870,28 +905,28 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
 
                                 {/* Knockout admin fields */}
                                 {isKnockout && realHomeScore !== "" && realAwayScore !== "" && homeTeam && awayTeam && (
-                                    <div className="mt-4 rounded-2xl bg-white p-4 space-y-4 border border-gray-100">
+                                    <div className="mt-4 rounded-2xl bg-white dark:bg-gray-600 p-4 space-y-4 border border-gray-100 dark:border-gray-500">
                                         <div>
-                                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Quién clasificó?</p>
+                                            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">¿Quién clasificó?</p>
                                             {Number(realHomeScore) === Number(realAwayScore) ? (
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => setResultQualified(match.homeTeamId ?? "")} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultQualified === match.homeTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>{homeTeam.name}</button>
-                                                    <button onClick={() => setResultQualified(match.awayTeamId ?? "")} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultQualified === match.awayTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>{awayTeam.name}</button>
+                                                    <button onClick={() => setResultQualified(match.homeTeamId ?? "")} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultQualified === match.homeTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}>{homeTeam.name}</button>
+                                                    <button onClick={() => setResultQualified(match.awayTeamId ?? "")} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultQualified === match.awayTeamId ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}>{awayTeam.name}</button>
                                                 </div>
                                             ) : (
-                                                <p className="text-sm font-semibold text-gray-700">
+                                                <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                                                     {Number(realHomeScore) > Number(realAwayScore) ? homeTeam.name : awayTeam.name}
-                                                    <span className="ml-2 text-xs text-gray-400">(automático)</span>
+                                                    <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">(automático)</span>
                                                 </p>
                                             )}
                                         </div>
 
                                         {Number(realHomeScore) === Number(realAwayScore) && (
                                             <div>
-                                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">¿Hubo penales?</p>
+                                                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">¿Hubo penales?</p>
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => setResultPenalties(false)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${!resultPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>No</button>
-                                                    <button onClick={() => setResultPenalties(true)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-700 border-gray-200"}`}>Sí</button>
+                                                    <button onClick={() => setResultPenalties(false)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${!resultPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}>No</button>
+                                                    <button onClick={() => setResultPenalties(true)} className={`flex-1 rounded-xl py-2 text-sm font-bold border ${resultPenalties ? "bg-gray-900 text-white border-gray-900" : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-500"}`}>Sí</button>
                                                 </div>
                                             </div>
                                         )}
@@ -926,7 +961,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
                                             setResultQualified("");
                                             setResultPenalties(false);
                                         }}
-                                        className="flex-1 rounded-2xl bg-gray-200 px-4 py-3 text-sm font-bold text-gray-700"
+                                        className="flex-1 rounded-2xl bg-gray-200 dark:bg-gray-600 px-4 py-3 text-sm font-bold text-gray-700 dark:text-gray-200"
                                     >
                                         Cancelar
                                     </button>
@@ -956,7 +991,7 @@ export function MatchModal({ match, onClose, attendanceStatus, onClearAttendance
 
                                             setIsSavingResult(false);
                                         }}
-                                        className="flex-1 rounded-2xl bg-green-600 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-gray-300"
+                                        className="flex-1 rounded-2xl bg-violet-600 hover:bg-violet-700 px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-600"
                                     >
                                         Registrar resultado
                                     </button>

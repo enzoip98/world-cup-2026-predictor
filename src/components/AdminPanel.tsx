@@ -8,6 +8,7 @@ import { matchesData } from "@/data/matchesData";
 import { teamsByFifaCode, teamsById } from "@/data/Teams";
 import { TeamPickerModal } from "./TeamPickerModal";
 import { CountryFlag } from "./CountryFlag";
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 
 type Props = {
     party: Party | null;
@@ -97,24 +98,24 @@ export function AdminPanel({
 
     return (
         <>
-            <div className="grid grid-cols-3 rounded-3xl bg-gray-100 p-1 shadow-sm my-4">
+            <div className="grid grid-cols-3 rounded-3xl bg-gray-100 dark:bg-gray-800 p-1 shadow-sm my-4">
                 <button
                     onClick={() => setActiveAdminTab("settings")}
-                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "settings" ? "bg-gray-900 text-white" : "text-gray-500"}`}
+                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "settings" ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900" : "text-gray-500 dark:text-gray-400"}`}
                 >
                     Ajustes
                 </button>
 
                 <button
                     onClick={() => setActiveAdminTab("knockout_teams")}
-                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "knockout_teams" ? "bg-gray-900 text-white" : "text-gray-500"}`}
+                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "knockout_teams" ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900" : "text-gray-500 dark:text-gray-400"}`}
                 >
                     Eliminatorias
                 </button>
 
                 <button
                     onClick={() => setActiveAdminTab("final_results")}
-                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "final_results" ? "bg-gray-900 text-white" : "text-gray-500"}`}
+                    className={`rounded-2xl px-3 py-3 text-sm font-black transition ${activeAdminTab === "final_results" ? "bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900" : "text-gray-500 dark:text-gray-400"}`}
                 >
                     Especiales
                 </button>
@@ -124,22 +125,22 @@ export function AdminPanel({
             {activeAdminTab === "settings" && (
                 <>
                     <section className="space-y-5 my-4">
-                        <div className="rounded-3xl bg-white p-5 shadow-sm">
+                        <div className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm">
                             <p className="text-sm font-bold uppercase tracking-widest text-green-600">
                                 Administración
                             </p>
 
-                            <h2 className="mt-2 text-2xl font-black text-gray-950">
+                            <h2 className="mt-2 text-2xl font-black text-gray-950 dark:text-gray-50">
                                 Ajustes de la party
                             </h2>
 
-                            <p className="mt-2 text-sm text-gray-600">
+                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                 Gestiona miembros y permisos generales de esta party.
                             </p>
                         </div>
 
-                        <div className="rounded-3xl bg-white p-5 shadow-sm">
-                            <h3 className="text-lg font-black text-gray-950">
+                        <div className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm">
+                            <h3 className="text-lg font-black text-gray-950 dark:text-gray-50">
                                 👥 Miembros
                             </h3>
 
@@ -152,20 +153,32 @@ export function AdminPanel({
                                     return (
                                         <div
                                             key={member.uid}
-                                            className="flex items-center justify-between rounded-2xl border border-gray-100 p-4"
+                                            className="flex items-center justify-between rounded-2xl border border-gray-100 dark:border-gray-700 p-4"
                                         >
-                                            <div>
-                                                <p className="font-bold text-gray-900">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-9 w-9 shrink-0">
+                                                    <AvatarImage
+                                                        src={member.avatarUrl ?? member.photoURL ?? undefined}
+                                                        referrerPolicy="no-referrer"
+                                                    />
+                                                    <AvatarFallback className="text-sm font-bold">
+                                                        {member.name.charAt(0).toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+
+                                                <div>
+                                                <p className="font-bold text-gray-900 dark:text-gray-100">
                                                     {member.name}
                                                 </p>
 
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                                     {isOwner
                                                         ? "Owner"
                                                         : memberIsAdmin
                                                             ? "Admin"
                                                             : "Miembro"}
                                                 </p>
+                                            </div>
                                             </div>
 
                                             {!isOwner && member.uid !== appUser.uid && (
@@ -203,16 +216,16 @@ export function AdminPanel({
                             </div>
                         </div>
 
-                        <div className="rounded-3xl bg-white p-5 shadow-sm">
-                            <h3 className="text-lg font-black text-gray-950">
+                        <div className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm">
+                            <h3 className="text-lg font-black text-gray-950 dark:text-gray-50">
                                 🔐 Código de party
                             </h3>
 
-                            <p className="mt-2 text-sm text-gray-600">
+                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                 Comparte este código para que otros se unan.
                             </p>
 
-                            <div className="mt-4 rounded-2xl bg-gray-100 px-4 py-3 text-center text-xl font-black tracking-widest">
+                            <div className="mt-4 rounded-2xl bg-gray-100 dark:bg-gray-700 px-4 py-3 text-center text-xl font-black tracking-widest dark:text-gray-50">
                                 {party.code}
                             </div>
                         </div>
@@ -236,25 +249,25 @@ export function AdminPanel({
 
                         {pendingAction && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-5">
-                                <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
-                                    <h2 className="text-xl font-black text-gray-950">
+                                <div className="w-full max-w-md rounded-3xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+                                    <h2 className="text-xl font-black text-gray-950 dark:text-gray-50">
                                         {pendingAction.type === "promote"
                                             ? "Hacer administrador"
                                             : "Quitar administrador"}
                                     </h2>
 
                                     {pendingAction.type === "promote" ? (
-                                        <div className="mt-4 space-y-3 text-sm text-gray-600">
+                                        <div className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
                                             <p>
                                                 ¿Deseas convertir a{" "}
-                                                <span className="font-bold text-gray-900">
+                                                <span className="font-bold text-gray-900 dark:text-gray-100">
                                                     {pendingAction.user.name}
                                                 </span>{" "}
                                                 en administrador?
                                             </p>
 
-                                            <div className="rounded-2xl bg-gray-50 p-4">
-                                                <p className="font-bold text-gray-900">
+                                            <div className="rounded-2xl bg-gray-50 dark:bg-gray-700 p-4">
+                                                <p className="font-bold text-gray-900 dark:text-gray-100">
                                                     Este usuario podrá:
                                                 </p>
 
@@ -267,10 +280,10 @@ export function AdminPanel({
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="mt-4 space-y-3 text-sm text-gray-600">
+                                        <div className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
                                             <p>
                                                 ¿Deseas quitarle permisos de administrador a{" "}
-                                                <span className="font-bold text-gray-900">
+                                                <span className="font-bold text-gray-900 dark:text-gray-100">
                                                     {pendingAction.user.name}
                                                 </span>
                                                 ?
@@ -285,7 +298,7 @@ export function AdminPanel({
                                     <div className="mt-6 flex gap-3">
                                         <button
                                             onClick={closeModal}
-                                            className="flex-1 rounded-2xl bg-gray-100 py-3 text-sm font-black text-gray-700"
+                                            className="flex-1 rounded-2xl bg-gray-100 dark:bg-gray-700 py-3 text-sm font-black text-gray-700 dark:text-gray-200"
                                         >
                                             Cancelar
                                         </button>
@@ -310,10 +323,10 @@ export function AdminPanel({
 
             {activeAdminTab === "knockout_teams" && (
                 <section className="space-y-4 my-4">
-                    <div className="rounded-3xl bg-white p-5 shadow-sm">
+                    <div className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm">
                         <p className="text-sm font-bold uppercase tracking-widest text-green-600">Eliminatorias</p>
-                        <h2 className="mt-2 text-2xl font-black text-gray-950">Equipos por partido</h2>
-                        <p className="mt-2 text-sm text-gray-600">
+                        <h2 className="mt-2 text-2xl font-black text-gray-950 dark:text-gray-50">Equipos por partido</h2>
+                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             Asigna los equipos cuando se conozcan los clasificados de cada llave.
                         </p>
                     </div>
@@ -338,11 +351,11 @@ export function AdminPanel({
                         };
 
                         return (
-                            <div key={match.id} className="rounded-3xl bg-white p-5 shadow-sm">
-                                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                            <div key={match.id} className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm">
+                                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                                     {stageLabel[match.stage] ?? match.stage} · M{match.matchNumber}
                                 </p>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                     {match.homeLabel} vs {match.awayLabel}
                                 </p>
 
@@ -354,19 +367,19 @@ export function AdminPanel({
 
                                 <div className="mt-3 grid grid-cols-2 gap-2">
                                     <div>
-                                        <p className="text-xs text-gray-500 mb-1">Local</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Local</p>
                                         <button
                                             onClick={() => setActivePicker({ matchId: match.id, slot: "home" })}
-                                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-bold text-left flex items-center gap-2"
+                                            className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm font-bold text-left flex items-center gap-2 dark:text-gray-100"
                                         >
                                             {homeTeam ? <><CountryFlag homeTeam={homeTeam} />{homeTeam.nameEs}</> : "Seleccionar"}
                                         </button>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-500 mb-1">Visitante</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Visitante</p>
                                         <button
                                             onClick={() => setActivePicker({ matchId: match.id, slot: "away" })}
-                                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-bold text-left flex items-center gap-2"
+                                            className="w-full rounded-2xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-3 text-sm font-bold text-left flex items-center gap-2 dark:text-gray-100"
                                         >
                                             {awayTeam ? <><CountryFlag homeTeam={awayTeam} />{awayTeam.nameEs}</> : "Seleccionar"}
                                         </button>

@@ -96,10 +96,10 @@ export function SpecialPredictionsSection({
 
     return (
         <>
-            <section className="rounded-3xl bg-white p-5 shadow-sm my-4">
+            <section className="rounded-3xl bg-white dark:bg-gray-800 p-5 shadow-sm my-4">
                 <div className="mb-5">
                     <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-md font-black text-gray-900">
+                        <h3 className="text-md font-black text-gray-900 dark:text-gray-50">
                             🏆 Pronósticos especiales
                         </h3>
 
@@ -108,7 +108,7 @@ export function SpecialPredictionsSection({
                         </span>
                     </div>
 
-                    <p className="mt-2 text-xs leading-6 text-gray-500">
+                    <p className="mt-2 text-xs leading-6 text-gray-500 dark:text-gray-400">
                         Cada elección se guarda una sola vez y se bloquea cuando empiece el
                         Mundial.
                     </p>

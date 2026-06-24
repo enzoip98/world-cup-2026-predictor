@@ -14,10 +14,10 @@ const RANK_MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
     return (
-        <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-4 shadow-sm">
-            <p className="text-2xl font-black text-gray-950">{value}</p>
-            {sub && <p className="text-xs font-bold text-green-600">{sub}</p>}
-            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">{label}</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-sm">
+            <p className="text-2xl font-black text-gray-950 dark:text-gray-50">{value}</p>
+            {sub && <p className="text-xs font-bold text-green-600 dark:text-green-400">{sub}</p>}
+            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</p>
         </div>
     );
 }
@@ -35,7 +35,7 @@ export function PlayerProfileModal({ row, rank, onClose }: Props) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-gray-50 shadow-2xl"
+                className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-gray-100 dark:bg-gray-900 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header con gradiente */}
@@ -49,7 +49,7 @@ export function PlayerProfileModal({ row, rank, onClose }: Props) {
 
                     <div className="flex flex-col items-center">
                         <div className="relative">
-                            <Avatar className="h-20 w-20 ring-4 ring-white/30">
+                            <Avatar className="h-20 w-20 ring-4 ring-violet-400/80">
                                 <AvatarImage
                                     src={row.avatarUrl ?? row.photoURL ?? undefined}
                                     referrerPolicy="no-referrer"
@@ -108,40 +108,40 @@ export function PlayerProfileModal({ row, rank, onClose }: Props) {
                 </div>
 
                 {/* Rachas */}
-                <div className="mx-4 mt-3 rounded-2xl bg-white p-4 shadow-sm">
-                    <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Rachas</p>
+                <div className="mx-4 mt-3 rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">Rachas</p>
                     <div className="flex justify-around">
                         <div className="text-center">
-                            <p className="text-3xl font-black text-gray-950">
+                            <p className="text-3xl font-black text-gray-950 dark:text-gray-50">
                                 {row.currentStreak > 0 ? `🔥 ${row.currentStreak}` : row.currentStreak}
                             </p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">Actual</p>
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Actual</p>
                         </div>
-                        <div className="w-px bg-gray-100" />
+                        <div className="w-px bg-gray-100 dark:bg-gray-700" />
                         <div className="text-center">
-                            <p className="text-3xl font-black text-gray-950">
+                            <p className="text-3xl font-black text-gray-950 dark:text-gray-50">
                                 {row.bestStreak > 0 ? `⭐ ${row.bestStreak}` : row.bestStreak}
                             </p>
-                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">Mejor racha</p>
+                            <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Mejor racha</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Achievements */}
                 <div className="mx-4 mt-3 mb-6">
-                    <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">
+                    <p className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-3">
                         Distintivos
                         {unlocked.length > 0 && (
-                            <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-green-700 normal-case">
+                            <span className="ml-2 rounded-full bg-green-100 dark:bg-green-900/40 px-2 py-0.5 text-green-700 dark:text-green-400 normal-case">
                                 {unlocked.length}/{achievements.length}
                             </span>
                         )}
                     </p>
 
                     {unlocked.length === 0 && (
-                        <div className="rounded-2xl bg-white p-5 text-center shadow-sm">
+                        <div className="rounded-2xl bg-white dark:bg-gray-800 p-5 text-center shadow-sm">
                             <p className="text-2xl">🏅</p>
-                            <p className="mt-2 text-sm font-bold text-gray-500">
+                            <p className="mt-2 text-sm font-bold text-gray-500 dark:text-gray-400">
                                 Todavía sin distintivos. ¡A pronosticar!
                             </p>
                         </div>
@@ -160,7 +160,7 @@ export function PlayerProfileModal({ row, rank, onClose }: Props) {
                                             <span className="text-2xl">{a.emoji}</span>
                                             <div>
                                                 <p className={`text-sm font-black ${style.text}`}>{a.title}</p>
-                                                <p className="text-xs text-gray-500">{a.description}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">{a.description}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -172,18 +172,18 @@ export function PlayerProfileModal({ row, rank, onClose }: Props) {
                     {/* Bloqueados — mostrar más sutiles */}
                     {locked.length > 0 && (
                         <div className="mt-2">
-                            <p className="text-xs font-semibold text-gray-400 mb-2">Por desbloquear</p>
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Por desbloquear</p>
                             <div className="grid grid-cols-2 gap-2">
                                 {locked.map((a) => (
                                     <div
                                         key={a.id}
-                                        className="rounded-2xl border border-gray-100 bg-white p-3 opacity-40"
+                                        className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 opacity-40"
                                     >
                                         <div className="flex items-center gap-2">
                                             <span className="text-2xl grayscale">{a.emoji}</span>
                                             <div>
-                                                <p className="text-sm font-black text-gray-400">{a.title}</p>
-                                                <p className="text-xs text-gray-400">{a.description}</p>
+                                                <p className="text-sm font-black text-gray-400 dark:text-gray-500">{a.title}</p>
+                                                <p className="text-xs text-gray-400 dark:text-gray-500">{a.description}</p>
                                             </div>
                                         </div>
                                     </div>
